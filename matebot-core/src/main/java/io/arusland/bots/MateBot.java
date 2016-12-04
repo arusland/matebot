@@ -76,7 +76,8 @@ public class MateBot extends BaseCommandBot implements BotContext {
         clearShortcutCommands(user);
     }
 
-    private void clearShortcutCommands(User user) {
+    @Override
+    public void clearShortcutCommands(User user) {
         shortcutCommands.removeIf(p -> p.getUserId().equals(user.getId()));
     }
 

@@ -46,4 +46,10 @@ public interface BotContext {
      * @return Shortcut command.
      */
     ShortcutCommand getShortcutCommand(User user, String shortcut);
+
+    /**
+     * Clear shortcut commands.
+     * @param user User.
+     */
+    void clearShortcutCommands(User user);
 }
