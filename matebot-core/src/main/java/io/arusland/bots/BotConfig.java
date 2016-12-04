@@ -20,7 +20,7 @@ public class BotConfig {
     private final Properties prop;
 
     protected BotConfig(Properties prop) {
-        this.prop = prop;
+        this.prop = Validate.notNull(prop, "prop");
     }
 
     public String getMatebotName() {
