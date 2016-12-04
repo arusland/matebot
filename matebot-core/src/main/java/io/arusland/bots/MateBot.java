@@ -8,6 +8,7 @@ import io.arusland.storage.StorageFactory;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.lang3.Validate;
 import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
@@ -145,6 +146,24 @@ public class MateBot extends BaseCommandBot implements BotContext {
             sendDocument(doc);
         } catch (TelegramApiException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public org.telegram.telegrambots.api.objects.File doGetFile(GetFile getFile) {
+        try {
+            return getFile(getFile);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public File doDownloadFile(org.telegram.telegrambots.api.objects.File file) {
+        try {
+            return downloadFile(file);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -3,15 +3,14 @@ package io.arusland.bots.commands;
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
 import io.arusland.storage.Item;
+import io.arusland.storage.ItemType;
 import io.arusland.storage.UserStorage;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.User;
+import org.telegram.telegrambots.api.methods.GetFile;
+import org.telegram.telegrambots.api.objects.*;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.bots.commands.BotCommand;
-
-import java.io.File;
 
 /**
  * Handle shortcut commands, file operations.
@@ -29,10 +28,71 @@ public class CommonCommand extends BaseBotCommand {
         UserStorage storage = getContext().getUserStorage(user);
         Message msg = update.getMessage();
 
+        System.out.println(msg);
+
         if (msg.hasText()) {
             handleTextMessage(update, msg, user, storage);
         } else {
-            sendMessage(msg.getChatId(), "It's not a text!");
+            handleFileUpload(update, msg, user, storage);
+        }
+    }
+
+    private void handleFileUpload(Update update, Message message, User user, UserStorage storage) {
+        String fileId = "";
+        String fileName = "";
+        String altExt = "";
+
+        if (message.getDocument() != null) {
+            fileId = message.getDocument().getFileId();
+            fileName = message.getDocument().getFileName();
+        } else if (message.getAudio() != null) {
+            fileId = message.getAudio().getFileId();
+            fileName = message.getAudio().getTitle();
+            altExt = ".mp3";
+        } else if (message.getVideo() != null) {
+            fileId = message.getVideo().getFileId();
+            fileName = "" + System.currentTimeMillis();
+            altExt = ".mp4";
+        } else if (message.getVoice() != null) {
+            fileId = message.getVoice().getFileId();
+            fileName = "" + System.currentTimeMillis();
+            altExt = ".ogg";
+        } else if (message.getPhoto() != null && !message.getPhoto().isEmpty()) {
+            fileId = message.getPhoto().get(message.getPhoto().size() - 1).getFileId();
+            fileName = "" + System.currentTimeMillis();
+            altExt = ".jpg";
+        }
+
+        if (StringUtils.isNotBlank(fileId)) {
+            GetFile getFile = new GetFile();
+            getFile.setFileId(fileId);
+            File file = getContext().doGetFile(getFile);
+
+            if (StringUtils.isNoneBlank(file.getFilePath())) {
+                fileName += "." + FilenameUtils.getExtension(file.getFilePath());
+            } else {
+                fileName += altExt;
+            }
+
+            java.io.File downloadFile = getContext().doDownloadFile(file);
+            Item currentItem = getCurrentItem(user);
+            ItemType itemType = ItemType.getByFileName(fileName);
+
+            if (currentItem != null && currentItem.getType() == itemType) {
+                Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadFile);
+                sendMessage(message.getChatId(), "Item '" + addedItem.getFullPath() + "' added!");
+                getContext().listCurrentDir(update);
+            } else {
+                currentItem = storage.getItemByPath(itemType);
+                if (currentItem != null) {
+                    Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadFile);
+                    sendMessage(message.getChatId(), "Item '" + addedItem.getFullPath() + "' added!");
+                    getContext().setCurrentDir(user, currentItem.getFullPath());
+                    getContext().listCurrentDir(update);
+                }
+            }
+
+            downloadFile.delete();
         }
     }
 
@@ -46,20 +106,16 @@ public class CommonCommand extends BaseBotCommand {
             }
         }
 
-        String currentPath = getContext().getCurrentPath(user);
+        Item currentItem = getCurrentItem(user);
 
-        if (StringUtils.isNoneBlank(currentPath)) {
-            Item currentItem = storage.getItemByPath(getContext().getCurrentPath(user));
+        if (currentItem != null) {
+            StringBuilder sb = new StringBuilder();
 
-            if (currentItem != null) {
-                StringBuilder sb = new StringBuilder();
+            sb.append("Current dir: ");
+            sb.append(currentItem.getFullPath());
+            sb.append("\n");
 
-                sb.append("Current dir: ");
-                sb.append(currentItem.getFullPath());
-                sb.append("\n");
-
-                sendMessage(message.getChat().getId(), sb.toString());
-            }
+            sendMessage(message.getChat().getId(), sb.toString());
         }
     }
 
@@ -73,7 +129,7 @@ public class CommonCommand extends BaseBotCommand {
                 Item item = storage.getItemByPath(cmd.getArguments().get(0));
 
                 if (item != null && !item.isDirectory()) {
-                    File file = item.tryGetFile();
+                    java.io.File file = item.tryGetFile();
 
                     if (file != null && !file.isDirectory()) {
                         getContext().sendFile(chatId, file);

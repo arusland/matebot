@@ -20,7 +20,9 @@ public enum ItemType {
 
     VIDEOS("Save videos", "mp4", "avi", "mkv"),
 
-    AUDIOS("Save audios", "mp3", "wav", "flac", "ogg");
+    AUDIOS("Save audios", "mp3", "wav", "flac", "oga", "ogg"),
+
+    DOCS("All files");
 
     ItemType(String description, String... extensions) {
         this.description = description;
@@ -40,5 +42,17 @@ public enum ItemType {
 
     public String normalized() {
         return name().toLowerCase();
+    }
+
+    public static ItemType getByFileName(String fileName) {
+        for (ItemType type : values()) {
+            if (type != ROOT && type != DOCS) {
+                if (type.extensions().stream().anyMatch(p -> fileName.endsWith("." + p))) {
+                    return type;
+                }
+            }
+        }
+
+        return DOCS;
     }
 }

@@ -2,11 +2,12 @@ package io.arusland.bots.base;
 
 import io.arusland.bots.commands.ShortcutCommand;
 import io.arusland.storage.UserStorage;
+import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.objects.File;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -25,7 +26,11 @@ public interface BotContext {
 
     void sendMessage(Long chatId, SendMessage message);
 
-    void sendFile(Long chatId, File file);
+    void sendFile(Long chatId, java.io.File file);
+
+    File doGetFile(GetFile getFile);
+
+    java.io.File doDownloadFile(File file);
 
     void showRoots(Update update);
 

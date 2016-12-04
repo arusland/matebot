@@ -1,5 +1,8 @@
 package io.arusland.bots.base;
 
+import io.arusland.storage.Item;
+import io.arusland.storage.UserStorage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Chat;
@@ -17,10 +20,11 @@ public abstract class BaseBotCommand extends BotCommand {
 
     /**
      * Construct a command
-     *  @param commandIdentifier the unique identifier of this command (e.g. the command string to
+     *
+     * @param commandIdentifier the unique identifier of this command (e.g. the command string to
      *                          enter into chat)
      * @param description       the description of this command
-     * @param context Context for current bot.
+     * @param context           Context for current bot.
      */
     public BaseBotCommand(String commandIdentifier, String description, BotContext context) {
         super(commandIdentifier, description);
@@ -53,5 +57,16 @@ public abstract class BaseBotCommand extends BotCommand {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public Item getCurrentItem(User user) {
+        String currentPath = getContext().getCurrentPath(user);
+        UserStorage storage = getContext().getUserStorage(user);
+
+        if (StringUtils.isNoneBlank(currentPath)) {
+            return storage.getItemByPath(currentPath);
+        }
+
+        return null;
     }
 }

@@ -20,6 +20,7 @@ public class TypedFileFilter implements FileFilter {
     @Override
     public boolean accept(File file) {
         return file.isDirectory() ||
+                type.extensions().isEmpty() ||
                 type.extensions().contains(FilenameUtils.getExtension(file.getName()).toLowerCase());
     }
 
