@@ -1,0 +1,7 @@
+/application.properties
+/matebot-core/target
+/.idea
+/*.iml
+/matebot-core/*.iml
+/matebot-db/*.iml
+/matebot-db/target
