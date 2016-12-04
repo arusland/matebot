@@ -16,6 +16,7 @@ import java.util.Properties;
  * Created by ruslan on 03.12.2016.
  */
 public class BotConfig {
+    private final static String CONFIG_PREFIX = "-config=";
     private final Properties prop;
 
     protected BotConfig(Properties prop) {
@@ -55,12 +56,12 @@ public class BotConfig {
     }
 
     public static BotConfig fromCommandArgs(String[] args) {
-        Optional<String> file = Arrays.stream(args)
-                .filter(p -> p.startsWith("-config="))
+        Optional<String> configFile = Arrays.stream(args)
+                .filter(p -> p.startsWith(CONFIG_PREFIX))
                 .findFirst();
 
-        if (file.isPresent()) {
-            return BotConfig.load(file.get());
+        if (configFile.isPresent()) {
+            return BotConfig.load(configFile.get().substring(CONFIG_PREFIX.length()));
         }
 
         return BotConfig.load("application.properties");
