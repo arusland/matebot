@@ -15,11 +15,11 @@ import java.util.Properties;
 public class BotConfig {
     private final static String CONFIG_PREFIX = "-config=";
     private final Properties prop;
-    private final File file;
+    private final File configFile;
 
-    protected BotConfig(Properties prop, File file) {
+    protected BotConfig(Properties prop, File configFile) {
         this.prop = Validate.notNull(prop, "prop");
-        this.file = file;
+        this.configFile = configFile;
     }
 
     public String getMatebotName() {
@@ -28,6 +28,22 @@ public class BotConfig {
 
     public String getMatebotToken() {
         return getProperty("matebot.token");
+    }
+
+    /**
+     * If userId defined, only he/she can use this bot.
+     *
+     * @return User's id.
+     */
+    public int getSingleUserId() {
+        if (prop.containsKey("single.userid")) {
+            try {
+                return Integer.parseInt(getProperty("single.userid"));
+            } catch (NumberFormatException ex) {
+            }
+        }
+
+        return 0;
     }
 
     public String getMatebotDbRoot() {
@@ -40,8 +56,8 @@ public class BotConfig {
         return dir.getAbsolutePath();
     }
 
-    public File getFile() {
-        return file;
+    public File getConfigFile() {
+        return configFile;
     }
 
     private String getProperty(String key) {

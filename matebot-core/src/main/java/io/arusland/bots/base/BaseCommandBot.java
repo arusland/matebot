@@ -31,17 +31,29 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
 
     @Override
     public final void onUpdateReceived(Update update) {
-        if (update.hasMessage()) {
-            Message message = update.getMessage();
-            if (message.isCommand()) {
-                if (executeCommand(update, message)) {
-                    return;
+        // TODO: handle EditedMessage!
+        if (!filter(update.getMessage())) {
+            if (update.hasMessage()) {
+                Message message = update.getMessage();
+                if (message.isCommand()) {
+                    if (executeCommand(update, message)) {
+                        return;
+                    }
                 }
             }
-        }
 
-        processNonCommandUpdate(update);
+            processNonCommandUpdate(update);
+        } else {
+            System.out.println("Message skipped " + update.getMessage());
+        }
     }
+
+    /**
+     * <code>true</code> if message must not be handled.
+     *
+     * @param message incoming message.
+     */
+    protected abstract boolean filter(Message message);
 
     private boolean executeCommand(Update update, Message message) {
         if (message.hasText()) {
