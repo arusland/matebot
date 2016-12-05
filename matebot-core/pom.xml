@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.arusland.bots</groupId>
     <artifactId>matebot-core</artifactId>
-    <packaging>pom</packaging>
     <version>0.1</version>
+    <packaging>jar</packaging>    
 
     <name>Telegram MateBot Core</name>
     <url>https://github.com/arusland/matebot</url>
@@ -66,6 +66,31 @@
     </dependencies>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>io.arusland.bots.MateBot</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -78,16 +103,6 @@
                     </configuration>
                 </plugin>
             </plugins>
-        </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
+        </pluginManagement>        
     </build>
 </project>

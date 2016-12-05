@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.arusland.bots</groupId>
     <artifactId>matebot-db</artifactId>
-    <packaging>pom</packaging>
     <version>0.1</version>
+    <packaging>jar</packaging>
 
-    <name>Telegram MateBot Core</name>
+    <name>Telegram MateBot DB</name>
     <url>https://github.com/arusland/matebot</url>
     <description>Heterogeneous db for MateBot</description>
 
@@ -57,20 +57,7 @@
         </dependency>
     </dependencies>
 
-    <build>                
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

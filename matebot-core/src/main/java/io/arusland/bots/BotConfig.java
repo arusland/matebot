@@ -2,10 +2,7 @@ package io.arusland.bots;
 
 import org.apache.commons.lang3.Validate;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
@@ -18,9 +15,11 @@ import java.util.Properties;
 public class BotConfig {
     private final static String CONFIG_PREFIX = "-config=";
     private final Properties prop;
+    private final File file;
 
-    protected BotConfig(Properties prop) {
+    protected BotConfig(Properties prop, File file) {
         this.prop = Validate.notNull(prop, "prop");
+        this.file = file;
     }
 
     public String getMatebotName() {
@@ -32,7 +31,17 @@ public class BotConfig {
     }
 
     public String getMatebotDbRoot() {
-        return getProperty("matebot.dbdir");
+        File dir = new File(getProperty("matebot.dbdir"));
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        return dir.getAbsolutePath();
+    }
+
+    public File getFile() {
+        return file;
     }
 
     private String getProperty(String key) {
@@ -42,8 +51,10 @@ public class BotConfig {
 
     public static BotConfig load(String fileName) {
         Properties prop = new Properties();
+        File file = null;
 
         try {
+            file = new File(fileName).getCanonicalFile();
             InputStream input = new FileInputStream(fileName);
             prop.load(input);
         } catch (FileNotFoundException e) {
@@ -52,7 +63,7 @@ public class BotConfig {
             throw new RuntimeException(e);
         }
 
-        return new BotConfig(prop);
+        return new BotConfig(prop, file);
     }
 
     public static BotConfig fromCommandArgs(String[] args) {

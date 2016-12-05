@@ -45,7 +45,11 @@ public class MateBot extends BaseCommandBot implements BotContext {
     public static void main(String[] args) {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
-            telegramBotsApi.registerBot(new MateBot(BotConfig.fromCommandArgs(args)));
+            BotConfig config = BotConfig.fromCommandArgs(args);
+            telegramBotsApi.registerBot(new MateBot(config));
+            System.out.println("MateBot started v0.1");
+            System.out.println("Config file - " + config.getFile());
+            System.out.println("Db directory - " + config.getMatebotDbRoot());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
