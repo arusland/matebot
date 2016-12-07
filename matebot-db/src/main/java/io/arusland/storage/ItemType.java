@@ -40,6 +40,9 @@ public enum ItemType {
         return description;
     }
 
+    /**
+     * Normalized name of the type.
+     */
     public String normalized() {
         return name().toLowerCase();
     }

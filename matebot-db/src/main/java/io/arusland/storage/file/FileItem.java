@@ -100,4 +100,14 @@ public class FileItem implements Item, Comparator<Item> {
             return o1.getName().compareTo(o2.getName());
         }
     }
+
+    @Override
+    public String toString() {
+        return "FileItem{" +
+                "user=" + user +
+                ", type=" + type +
+                ", file=" + file +
+                ", path=" + path +
+                '}';
+    }
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -21,7 +22,7 @@ public class FileUserStorage implements UserStorage {
     private final File root;
     private final List<Item> rootItems;
 
-    public FileUserStorage(User user, File root) {
+    FileUserStorage(User user, File root) {
         this.user = Validate.notNull(user, "user");
         this.root = Validate.notNull(root, "root");
         this.rootItems = getRootItems(this.root, this.user);
@@ -32,11 +33,15 @@ public class FileUserStorage implements UserStorage {
     }
 
     public Item getItemByPath(ItemType type) {
+        if (type == ItemType.ROOT) {
+            return null;
+        }
+
         return getItemByPath(type.normalized());
     }
 
     public Item getItemByPath(String path) {
-        return getFileItemByPath(root, user, path);
+        return getFileItemByPath(root, user, path, false);
     }
 
     public List<Item> listItems(String path) {
@@ -46,7 +51,7 @@ public class FileUserStorage implements UserStorage {
             return rootItems;
         }
 
-        FileItem item = getFileItemByPath(root, user, path);
+        FileItem item = getFileItemByPath(root, user, path, false);
 
         if (item != null) {
             return item.listItems();
@@ -70,7 +75,7 @@ public class FileUserStorage implements UserStorage {
 
     @Override
     public Item addItem(String path, String name, String content) {
-        FileItem parent = getFileItemByPath(root, user, path);
+        FileItem parent = getFileItemByPath(root, user, path, true);
 
         if (parent != null) {
             File file = new File(parent.getFile(), name);
@@ -90,7 +95,7 @@ public class FileUserStorage implements UserStorage {
 
     @Override
     public Item addItem(String path, String name, File content) {
-        FileItem parent = getFileItemByPath(root, user, path);
+        FileItem parent = getFileItemByPath(root, user, path, true);
 
         if (parent != null) {
             File file = new File(parent.getFile(), name);
@@ -110,14 +115,16 @@ public class FileUserStorage implements UserStorage {
 
     private static List<Item> getRootItems(File root, User user) {
         List<Item> result = Arrays.stream(ItemType.values())
-                .map(i -> getFileItemByPath(root, user, i.normalized()))
+                .filter(p -> p != ItemType.ROOT)
+                .map(i -> getFileItemByPath(root, user, i.normalized(), false))
                 .filter(p -> p != null)
+                .sorted(Comparator.comparing(FileItem::getName))
                 .collect(toList());
 
         return Collections.unmodifiableList(result);
     }
 
-    private static FileItem getFileItemByPath(File root, User user, String path) {
+    private static FileItem getFileItemByPath(File root, User user, String path, boolean createDirsIf) {
         ItemPath itemPath = ItemPath.parse(path);
 
         if (!itemPath.isRoot()) {
@@ -128,6 +135,10 @@ public class FileUserStorage implements UserStorage {
             }
 
             File result = new File(root, itemPath.getPath());
+
+            if (createDirsIf && !result.exists()) {
+                result.mkdirs();
+            }
 
             if (result.exists()) {
                 return new FileItem(user, itemPath.getType(), result, itemPath);

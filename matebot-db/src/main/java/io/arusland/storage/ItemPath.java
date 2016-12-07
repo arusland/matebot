@@ -67,6 +67,11 @@ public class ItemPath {
         }
 
         ItemType itemType = ItemType.valueOf(parts.get(0).toUpperCase());
+
+        if (itemType == ItemType.ROOT) {
+            return ItemPath.ROOT;
+        }
+
         parts.remove(0);
         String shortPath = String.join("/", parts);
 
@@ -87,5 +92,31 @@ public class ItemPath {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ItemPath itemPath = (ItemPath) o;
+
+        if (!path.equals(itemPath.path)) return false;
+        return type == itemPath.type;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = path.hashCode();
+        result = 31 * result + type.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ItemPath{" +
+                "path='" + path + '\'' +
+                ", type=" + type +
+                '}';
     }
 }

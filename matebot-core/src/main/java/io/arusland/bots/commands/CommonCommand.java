@@ -74,25 +74,25 @@ public class CommonCommand extends BaseBotCommand {
                 fileName += altExt;
             }
 
-            java.io.File downloadFile = getContext().doDownloadFile(file);
+            java.io.File downloadedFile = getContext().doDownloadFile(file);
             Item currentItem = getCurrentItem(user);
             ItemType itemType = ItemType.getByFileName(fileName);
 
             if (currentItem != null && currentItem.getType() == itemType) {
-                Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadFile);
+                Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadedFile);
                 sendMessage(message.getChatId(), "Item '" + addedItem.getFullPath() + "' added!");
                 getContext().listCurrentDir(update);
             } else {
                 currentItem = storage.getItemByPath(itemType);
                 if (currentItem != null) {
-                    Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadFile);
+                    Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadedFile);
                     sendMessage(message.getChatId(), "Item '" + addedItem.getFullPath() + "' added!");
                     getContext().setCurrentDir(user, currentItem.getFullPath());
                     getContext().listCurrentDir(update);
                 }
             }
 
-            downloadFile.delete();
+            downloadedFile.delete();
         }
     }
 

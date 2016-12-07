@@ -6,3 +6,4 @@
 /matebot-db/*.iml
 /matebot-db/target
 /matedb_
+/dist/application.properties
