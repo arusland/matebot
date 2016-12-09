@@ -97,6 +97,18 @@ public class FileUserStorage implements UserStorage {
     public Item addItem(String path, String name, File content) {
         FileItem parent = getFileItemByPath(root, user, path, true);
 
+        return addItemIntoParentItem(name, content, parent);
+    }
+
+    @Override
+    public Item addItem(String name, File content) {
+        ItemType type = ItemType.fromFileName(name);
+        Item parent = getItemByPath(type);
+
+        return addItemIntoParentItem(name, content, (FileItem) parent);
+    }
+
+    private Item addItemIntoParentItem(String name, File content, FileItem parent) {
         if (parent != null) {
             File file = new File(parent.getFile(), name);
 

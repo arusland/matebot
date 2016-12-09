@@ -24,4 +24,12 @@ public interface UserStorage {
     Item addItem(String path, String name, String content);
 
     Item addItem(String path, String name, File content);
+
+    /**
+     * Automatically add in the right place.
+     * @param name Target file name.
+     * @param content Source file.
+     * @return Created {@link Item} object.
+     */
+    Item addItem(String name, File content);
 }

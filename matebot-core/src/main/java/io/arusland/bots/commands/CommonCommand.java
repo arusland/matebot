@@ -76,7 +76,7 @@ public class CommonCommand extends BaseBotCommand {
 
             java.io.File downloadedFile = getContext().doDownloadFile(file);
             Item currentItem = getCurrentItem(user);
-            ItemType itemType = ItemType.getByFileName(fileName);
+            ItemType itemType = ItemType.fromFileName(fileName);
 
             if (currentItem != null && currentItem.getType() == itemType) {
                 Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadedFile);

@@ -198,6 +198,23 @@ public class FileUserStorageTest {
         assertTrue(item.tryGetFile().exists());
     }
 
+    @Test
+    public void autoAddingFile() {
+        User user = new User(122342342L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        File file1 = TestUtils.createTempFile(34);
+
+        Item item = storage.addItem("newname5.mp3", file1);
+        file1.delete();
+
+        assertNotNull(item);
+        assertEquals("newname5.mp3", item.getName());
+        assertEquals("/audios/newname5.mp3", item.getFullPath());
+        assertEquals(34, item.getSize());
+        assertNotNull(item.tryGetFile());
+        assertTrue(item.tryGetFile().exists());
+    }
+
 
     private UserStorage getOrCreateStorage(User user) {
         return (FileUserStorage) fileStorage.getOrCreate(user);

@@ -47,7 +47,7 @@ public enum ItemType {
         return name().toLowerCase();
     }
 
-    public static ItemType getByFileName(String fileName) {
+    public static ItemType fromFileName(String fileName) {
         for (ItemType type : values()) {
             if (type != ROOT && type != DOCS) {
                 if (type.extensions().stream().anyMatch(p -> fileName.endsWith("." + p))) {
