@@ -1,11 +1,12 @@
 package io.arusland.bots.base;
 
-import io.arusland.bots.commands.ItemCommand;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.bots.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.bots.commands.BotCommand;
+import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import java.util.*;
 
@@ -45,6 +46,7 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
             processNonCommandUpdate(update);
         } else {
             System.out.println("Message skipped " + update.getMessage());
+            sendMessage(update.getMessage().getChatId(), "\uD83E\uDD16 Sorry, but it is personal bot. You can install you own one from https://github.com/arusland/matebot");
         }
     }
 
@@ -76,6 +78,23 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
 
     public List<BaseBotCommand> getRegisteredCommands() {
         return Collections.unmodifiableList(new ArrayList<>(commandsMap.values()));
+    }
+
+    public void sendMessage(Long chatId, SendMessage sendMessage) {
+        try {
+            sendMessage(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMessage(Long chatId, String message) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(false);
+        sendMessage.setChatId(chatId.toString());
+        sendMessage.setText(message);
+
+        sendMessage(chatId, sendMessage);
     }
 
     protected abstract void processNonCommandUpdate(Update update);

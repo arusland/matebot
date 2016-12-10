@@ -43,12 +43,7 @@ public abstract class BaseBotCommand extends BotCommand {
     }
 
     public void sendMessage(Long chatId, String msg) {
-        SendMessage message = new SendMessage();
-        message.enableMarkdown(false);
-        message.setChatId(chatId.toString());
-        message.setText(msg);
-
-        context.sendMessage(chatId, message);
+        context.sendMessage(chatId, msg);
     }
 
     public int getOrder() {

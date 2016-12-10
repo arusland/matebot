@@ -143,15 +143,6 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     @Override
-    public void sendMessage(Long chatId, SendMessage sendMessage) {
-        try {
-            sendMessage(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void sendFile(Long chatId, File file) {
         SendDocument doc = new SendDocument();
         doc.setChatId(chatId.toString());

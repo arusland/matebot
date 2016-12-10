@@ -26,6 +26,8 @@ public interface BotContext {
 
     void sendMessage(Long chatId, SendMessage message);
 
+    void sendMessage(Long chatId, String message);
+
     void sendFile(Long chatId, java.io.File file);
 
     File doGetFile(GetFile getFile);
