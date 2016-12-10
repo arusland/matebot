@@ -1,4 +1,4 @@
-package io.arusland.storage.file;
+package io.arusland.storage;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;

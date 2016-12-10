@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.arusland.storage.file.TestUtils.assertNoneBlank;
+import static io.arusland.storage.TestUtils.assertNoneBlank;
 import static junit.framework.TestCase.*;
 
 /**
