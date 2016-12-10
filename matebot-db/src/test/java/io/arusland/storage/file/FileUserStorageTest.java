@@ -1,9 +1,6 @@
 package io.arusland.storage.file;
 
-import io.arusland.storage.Item;
-import io.arusland.storage.ItemType;
-import io.arusland.storage.User;
-import io.arusland.storage.UserStorage;
+import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 
@@ -25,13 +22,13 @@ public class FileUserStorageTest {
     private FileStorage fileStorage;
 
     @Before
-    public void beforeAllTests() throws IOException {
+    public void beforeEachTest() throws IOException {
         root = Files.createTempDirectory("matebot");
         fileStorage = new FileStorage(root.toString(), Collections.emptyMap());
     }
 
     @After
-    public void afterAllTests() throws IOException {
+    public void afterEachTest() throws IOException {
         FileUtils.deleteDirectory(root.toFile());
     }
 
@@ -178,7 +175,6 @@ public class FileUserStorageTest {
         assertEquals(42, item.getSize());
         assertNotNull(item.tryGetFile());
         assertTrue(item.tryGetFile().exists());
-
     }
 
     @Test
@@ -199,10 +195,27 @@ public class FileUserStorageTest {
     }
 
     @Test
-    public void autoAddingFile() {
+    public void addFileIntoRootDir() {
         User user = new User(122342342L, "Foo");
         UserStorage storage = getOrCreateStorage(user);
         File file1 = TestUtils.createTempFile(34);
+
+        Item item = storage.addItem("/", "newname4.mp3", file1);
+        file1.delete();
+
+        assertNotNull(item);
+        assertEquals("newname4.mp3", item.getName());
+        assertEquals("/audios/newname4.mp3", item.getFullPath());
+        assertEquals(34, item.getSize());
+        assertNotNull(item.tryGetFile());
+        assertTrue(item.tryGetFile().exists());
+    }
+
+    @Test
+    public void autoAddingFileTest() {
+        User user = new User(122342342L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        File file1 = TestUtils.createTempFile(37);
 
         Item item = storage.addItem("newname5.mp3", file1);
         file1.delete();
@@ -210,11 +223,93 @@ public class FileUserStorageTest {
         assertNotNull(item);
         assertEquals("newname5.mp3", item.getName());
         assertEquals("/audios/newname5.mp3", item.getFullPath());
-        assertEquals(34, item.getSize());
+        assertEquals(37, item.getSize());
+        assertNotNull(item.tryGetFile());
+        assertTrue(item.tryGetFile().exists());
+
+        file1 = TestUtils.createTempFile(40);
+
+        item = storage.addItem("newname0.mp4", file1);
+        file1.delete();
+
+        assertNotNull(item);
+        assertEquals("newname0.mp4", item.getName());
+        assertEquals("/videos/newname0.mp4", item.getFullPath());
+        assertEquals(40, item.getSize());
+        assertNotNull(item.tryGetFile());
+        assertTrue(item.tryGetFile().exists());
+
+        file1 = TestUtils.createTempFile(13);
+
+        item = storage.addItem("newname0.txt", file1);
+        file1.delete();
+
+        assertNotNull(item);
+        assertEquals("newname0.txt", item.getName());
+        assertEquals("/docs/newname0.txt", item.getFullPath());
+        assertEquals(13, item.getSize());
         assertNotNull(item.tryGetFile());
         assertTrue(item.tryGetFile().exists());
     }
 
+    @Test
+    public void addFileIntoFileMustFail() {
+        User user = new User(122342342L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        File file1 = TestUtils.createTempFile(41);
+
+        try {
+            Item item = storage.addItem("/audios", "newname.mp3", file1);
+            file1.delete();
+
+            assertNotNull(item);
+            file1 = TestUtils.createTempFile(43);
+            storage.addItem(item.getFullPath(), "another.mp4", file1);
+            Assert.fail();
+        } catch (StorageException ex) {
+            assertTrue(ex.getMessage().startsWith("Cannot write file into file: "));
+        } finally {
+            file1.delete();
+        }
+    }
+
+    @Test
+    public void addFileWhenWithTheSameNameMustFail() {
+        User user = new User(122342342L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        File file = TestUtils.createTempFile(41);
+
+        try {
+            Item item = storage.addItem("/audios", "newname.mp3", file);
+            file.delete();
+
+            assertNotNull(item);
+            file = TestUtils.createTempFile(43);
+            storage.addItem("/audios", "newname.mp3", file);
+            Assert.fail();
+        } catch (StorageException ex) {
+            assertTrue(ex.getMessage().startsWith("File already exists: "));
+        } finally {
+            file.delete();
+        }
+    }
+
+    @Test
+    public void addingFileInTheWrongPlaceMustPutFileIntoRightPlace() {
+        User user = new User(122342342L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        File file = TestUtils.createTempFile(49);
+
+        Item item = storage.addItem("/docs", "newname9.avi", file);
+        file.delete();
+
+        assertNotNull(item);
+        assertEquals("newname9.avi", item.getName());
+        assertEquals("/videos/newname9.avi", item.getFullPath());
+        assertEquals(49, item.getSize());
+        assertNotNull(item.tryGetFile());
+        assertTrue(item.tryGetFile().exists());
+    }
 
     private UserStorage getOrCreateStorage(User user) {
         return (FileUserStorage) fileStorage.getOrCreate(user);

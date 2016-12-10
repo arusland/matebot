@@ -3,14 +3,20 @@ package io.arusland.bots.commands;
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
 import io.arusland.storage.Item;
-import io.arusland.storage.ItemType;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.objects.*;
+import org.telegram.telegrambots.api.objects.File;
+import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.bots.commands.BotCommand;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Handle shortcut commands, file operations.
@@ -18,6 +24,8 @@ import org.telegram.telegrambots.bots.commands.BotCommand;
  * Created by ruslan on 03.12.2016.
  */
 public class CommonCommand extends BaseBotCommand {
+    private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+
     public CommonCommand(BotContext context) {
         super("common", "This command not visible in menu!", context);
     }
@@ -51,15 +59,15 @@ public class CommonCommand extends BaseBotCommand {
             altExt = ".mp3";
         } else if (message.getVideo() != null) {
             fileId = message.getVideo().getFileId();
-            fileName = "" + System.currentTimeMillis();
+            fileName = getNewFileName();
             altExt = ".mp4";
         } else if (message.getVoice() != null) {
             fileId = message.getVoice().getFileId();
-            fileName = "" + System.currentTimeMillis();
+            fileName = getNewFileName();
             altExt = ".ogg";
         } else if (message.getPhoto() != null && !message.getPhoto().isEmpty()) {
             fileId = message.getPhoto().get(message.getPhoto().size() - 1).getFileId();
-            fileName = "" + System.currentTimeMillis();
+            fileName = getNewFileName();
             altExt = ".jpg";
         }
 
@@ -69,31 +77,40 @@ public class CommonCommand extends BaseBotCommand {
             File file = getContext().doGetFile(getFile);
 
             if (StringUtils.isNoneBlank(file.getFilePath())) {
-                fileName += "." + FilenameUtils.getExtension(file.getFilePath());
+                String ext = FilenameUtils.getExtension(file.getFilePath());
+
+                if (!FilenameUtils.getExtension(fileName).equalsIgnoreCase(ext)) {
+                    fileName += "." + ext;
+                }
             } else {
                 fileName += altExt;
             }
 
             java.io.File downloadedFile = getContext().doDownloadFile(file);
-            Item currentItem = getCurrentItem(user);
-            ItemType itemType = ItemType.fromFileName(fileName);
 
-            if (currentItem != null && currentItem.getType() == itemType) {
-                Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadedFile);
-                sendMessage(message.getChatId(), "Item '" + addedItem.getFullPath() + "' added!");
-                getContext().listCurrentDir(update);
-            } else {
-                currentItem = storage.getItemByPath(itemType);
-                if (currentItem != null) {
-                    Item addedItem = storage.addItem(currentItem.getFullPath(), fileName, downloadedFile);
+            try {
+                String currentPath = StringUtils.defaultString(getContext().getCurrentPath(user), "/");
+
+                Item addedItem = storage.addItem(currentPath, fileName, downloadedFile);
+
+                if (addedItem != null) {
                     sendMessage(message.getChatId(), "Item '" + addedItem.getFullPath() + "' added!");
-                    getContext().setCurrentDir(user, currentItem.getFullPath());
+                    getContext().setCurrentDir(user, addedItem.getParentPath());
                     getContext().listCurrentDir(update);
+                } else {
+                    sendMessage(message.getChatId(), "⚠ File adding failed!");
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                sendMessage(message.getChatId(), "⚠ error: " + ex.getMessage());
+            } finally {
+                downloadedFile.delete();
             }
-
-            downloadedFile.delete();
         }
+    }
+
+    private static String getNewFileName() {
+        return NAME_FORMAT.format(new Date());
     }
 
     private void handleTextMessage(Update update, Message message, User user, UserStorage storage) {

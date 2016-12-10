@@ -6,11 +6,9 @@ import org.apache.commons.lang3.Validate;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -20,12 +18,11 @@ import static java.util.stream.Collectors.toList;
 public class FileUserStorage implements UserStorage {
     private final User user;
     private final File root;
-    private final List<Item> rootItems;
+    private List<Item> rootItems;
 
     FileUserStorage(User user, File root) {
         this.user = Validate.notNull(user, "user");
         this.root = Validate.notNull(root, "root");
-        this.rootItems = getRootItems(this.root, this.user);
     }
 
     public User getUser() {
@@ -41,17 +38,17 @@ public class FileUserStorage implements UserStorage {
     }
 
     public Item getItemByPath(String path) {
-        return getFileItemByPath(root, user, path, false);
+        return getFileItemByPath(path, false);
     }
 
     public List<Item> listItems(String path) {
         ItemPath itemPath = ItemPath.parse(path);
 
         if (itemPath.isRoot()) {
-            return rootItems;
+            return getRootItems();
         }
 
-        FileItem item = getFileItemByPath(root, user, path, false);
+        FileItem item = getFileItemByPath(path, false);
 
         if (item != null) {
             return item.listItems();
@@ -75,7 +72,7 @@ public class FileUserStorage implements UserStorage {
 
     @Override
     public Item addItem(String path, String name, String content) {
-        FileItem parent = getFileItemByPath(root, user, path, true);
+        FileItem parent = getFileItemByPath(path, true);
 
         if (parent != null) {
             File file = new File(parent.getFile(), name);
@@ -95,7 +92,11 @@ public class FileUserStorage implements UserStorage {
 
     @Override
     public Item addItem(String path, String name, File content) {
-        FileItem parent = getFileItemByPath(root, user, path, true);
+        FileItem parent = getFileItemByPath(path, true);
+
+        if (parent == null) {
+            return addItem(name, content);
+        }
 
         return addItemIntoParentItem(name, content, parent);
     }
@@ -110,33 +111,52 @@ public class FileUserStorage implements UserStorage {
 
     private Item addItemIntoParentItem(String name, File content, FileItem parent) {
         if (parent != null) {
+            if (!parent.isDirectory()) {
+                throw new StorageException("Cannot write file into file: " + parent.getFullPath());
+            }
+
+            ItemType type = ItemType.fromFileName(name);
+
+            // suggested path is wrong type
+            // put file into right place
+            if (parent.getType() != type) {
+                return addItem(name, content);
+            }
+
             File file = new File(parent.getFile(), name);
+            String futurePath = parent.getFullPath() + "/" + file.getName();
 
             try {
                 Files.copy(content.toPath(), file.toPath());
+            } catch (FileAlreadyExistsException e) {
+                throw new StorageException("File already exists: " + futurePath, e);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
+            ItemPath itemPath = ItemPath.parse(futurePath);
             return new FileItem(user, parent.getType(), file, itemPath);
         }
 
         return null;
     }
 
-    private static List<Item> getRootItems(File root, User user) {
-        List<Item> result = Arrays.stream(ItemType.values())
-                .filter(p -> p != ItemType.ROOT)
-                .map(i -> getFileItemByPath(root, user, i.normalized(), false))
-                .filter(p -> p != null)
-                .sorted(Comparator.comparing(FileItem::getName))
-                .collect(toList());
+    private List<Item> getRootItems() {
+        if (rootItems == null) {
+            List<Item> result = Arrays.stream(ItemType.values())
+                    .filter(p -> p != ItemType.ROOT)
+                    .map(i -> getFileItemByPath(i.normalized(), false))
+                    .filter(p -> p != null)
+                    .sorted(Comparator.comparing(FileItem::getName))
+                    .collect(toList());
 
-        return Collections.unmodifiableList(result);
+            rootItems = Collections.unmodifiableList(result);
+        }
+
+        return rootItems;
     }
 
-    private static FileItem getFileItemByPath(File root, User user, String path, boolean createDirsIf) {
+    private FileItem getFileItemByPath(String path, boolean createDirsIf) {
         ItemPath itemPath = ItemPath.parse(path);
 
         if (!itemPath.isRoot()) {
