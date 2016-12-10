@@ -36,8 +36,6 @@ public class CommonCommand extends BaseBotCommand {
         UserStorage storage = getContext().getUserStorage(user);
         Message msg = update.getMessage();
 
-        System.out.println(msg);
-
         if (msg.hasText()) {
             handleTextMessage(update, msg, user, storage);
         } else {
@@ -100,17 +98,10 @@ public class CommonCommand extends BaseBotCommand {
                 } else {
                     sendMessage(message.getChatId(), "⚠ File adding failed!");
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                sendMessage(message.getChatId(), "⚠ error: " + ex.getMessage());
             } finally {
                 downloadedFile.delete();
             }
         }
-    }
-
-    private static String getNewFileName() {
-        return NAME_FORMAT.format(new Date());
     }
 
     private void handleTextMessage(Update update, Message message, User user, UserStorage storage) {
@@ -186,8 +177,12 @@ public class CommonCommand extends BaseBotCommand {
                 // move file
                 sendMessage(chatId, "TODO: Moving file: " + cmd.getArguments());
             } else {
-                System.out.println("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
+                log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
             }
         }
+    }
+
+    private static String getNewFileName() {
+        return NAME_FORMAT.format(new Date());
     }
 }

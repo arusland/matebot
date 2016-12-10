@@ -1,5 +1,6 @@
 package io.arusland.bots.base;
 
+import org.apache.log4j.Logger;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
@@ -16,6 +17,7 @@ import java.util.*;
  * Created by ruslan on 03.12.2016.
  */
 public abstract class BaseCommandBot extends TelegramLongPollingBot {
+    protected final Logger log = Logger.getLogger(getClass());
     private final Map<String, BaseBotCommand> commandsMap = new HashMap<>();
 
     public BaseCommandBot() {
@@ -34,6 +36,8 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
     public final void onUpdateReceived(Update update) {
         // TODO: handle EditedMessage!
         if (!filter(update.getMessage())) {
+            log.info("Received message: " + update.getMessage());
+
             if (update.hasMessage()) {
                 Message message = update.getMessage();
                 if (message.isCommand()) {
@@ -43,9 +47,14 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
                 }
             }
 
-            processNonCommandUpdate(update);
+            try {
+                processNonCommandUpdate(update);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                sendMessage(update.getMessage().getChatId(), "⚠ error: " + e.getMessage());
+            }
         } else {
-            System.out.println("Message skipped " + update.getMessage());
+            log.warn("Message from alien skipped: " + update.getMessage());
             sendMessage(update.getMessage().getChatId(), "\uD83E\uDD16 Sorry, but it is personal bot. You can install you own one from https://github.com/arusland/matebot");
         }
     }
@@ -65,14 +74,22 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
                 String[] commandSplit = commandMessage.split(BotCommand.COMMAND_PARAMETER_SEPARATOR);
 
                 String command = commandSplit[0];
+                BaseBotCommand cmd = commandsMap.get(command);
 
-                if (commandsMap.containsKey(command)) {
+                if (cmd != null) {
+                    log.info("Executing command: " + command);
                     String[] parameters = Arrays.copyOfRange(commandSplit, 1, commandSplit.length);
-                    commandsMap.get(command).execute(this, update, parameters);
+                    try {
+                        cmd.execute(this, update, parameters);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                        sendMessage(message.getChatId(), "⚠ error: " + e.getMessage());
+                    }
                     return true;
                 }
             }
         }
+
         return false;
     }
 
@@ -82,9 +99,11 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
 
     public void sendMessage(Long chatId, SendMessage sendMessage) {
         try {
+            log.info("Sending message: " + sendMessage);
+
             sendMessage(sendMessage);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 

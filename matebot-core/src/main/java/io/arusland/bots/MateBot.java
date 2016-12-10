@@ -10,7 +10,6 @@ import org.apache.commons.lang3.Validate;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
@@ -40,6 +39,10 @@ public class MateBot extends BaseCommandBot implements BotContext {
         register(new StartCommand(this));
         register(new UpDirCommand(this));
         registerAll(ItemCommand.listAll(this));
+
+        log.info("MateBot started v0.1");
+        log.info("Config file - " + config.getConfigFile());
+        log.info("Db directory - " + config.getMatebotDbRoot());
     }
 
     public static void main(String[] args) {
@@ -47,9 +50,6 @@ public class MateBot extends BaseCommandBot implements BotContext {
         try {
             BotConfig config = BotConfig.fromCommandArgs(args);
             telegramBotsApi.registerBot(new MateBot(config));
-            System.out.println("MateBot started v0.1");
-            System.out.println("Config file - " + config.getConfigFile());
-            System.out.println("Db directory - " + config.getMatebotDbRoot());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -149,9 +149,10 @@ public class MateBot extends BaseCommandBot implements BotContext {
         doc.setNewDocument(file);
 
         try {
+            log.info("Sending file: " + doc);
             sendDocument(doc);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 

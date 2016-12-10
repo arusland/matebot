@@ -4,6 +4,7 @@ import io.arusland.storage.Item;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.log4j.Logger;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Chat;
 import org.telegram.telegrambots.api.objects.Update;
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.bots.commands.BotCommand;
  * Created by ruslan on 03.12.2016.
  */
 public abstract class BaseBotCommand extends BotCommand {
+    protected final Logger log = Logger.getLogger(getClass());
     private final BotContext context;
     private int order = 50;
 
