@@ -51,6 +51,20 @@ public class AlertInfoTest {
     }
 
     @Test
+    public void testFullWithEmptyMessageStartsWithSpace() {
+        AlertInfo info = AlertInfo.parse(" 07:03 5:12:2017");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(3, info.minute);
+        assertEquals(5, (int) info.day);
+        assertEquals(12, (int) info.month);
+        assertEquals(2017, (int) info.year);
+        assertEquals(0, info.weekDay);
+        assertEquals("", info.message);
+    }
+
+    @Test
     public void testFullWithoutYearWithMessage() {
         AlertInfo info = AlertInfo.parse("07:3 23:2 My message");
 
@@ -166,6 +180,20 @@ public class AlertInfoTest {
     @Test
     public void testShortWithoutMessage() {
         AlertInfo info = AlertInfo.parse("12:21");
+
+        assertTrue(info.valid);
+        assertEquals(12, info.hour);
+        assertEquals(21, info.minute);
+        assertNull(info.day);
+        assertNull(info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDay);
+        assertEquals("", info.message);
+    }
+
+    @Test
+    public void testShortWithoutMessageStartsWithSpace() {
+        AlertInfo info = AlertInfo.parse(" 12:21");
 
         assertTrue(info.valid);
         assertEquals(12, info.hour);
@@ -322,20 +350,6 @@ public class AlertInfoTest {
     @Test
     public void testFormatInvalid6() {
         AlertInfo info = AlertInfo.parse(null);
-
-        assertNull(info);
-    }
-
-    @Test
-    public void testTimeStartsWithSpaceInvalid() {
-        AlertInfo info = AlertInfo.parse(" 10:12");
-
-        assertNull(info);
-    }
-
-    @Test
-    public void testDateStartsWithSpaceInvalid() {
-        AlertInfo info = AlertInfo.parse(" 10:12 21:02:2014");
 
         assertNull(info);
     }

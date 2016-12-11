@@ -68,10 +68,12 @@ public class AlertInfo {
                 day != null ? day : 1, month != null ? month : 1, year != null ? year : 2000));
     }
 
-    public static AlertInfo parse(final String input) {
-        if (StringUtils.isBlank(input)) {
+    public static AlertInfo parse(final String input0) {
+        if (StringUtils.isBlank(input0)) {
             return null;
         }
+
+        final String input = input0.trim();
 
         Matcher mc = ALERT_FULL_PATTERN.matcher(input);
 
