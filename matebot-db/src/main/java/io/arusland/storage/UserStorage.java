@@ -21,7 +21,7 @@ public interface UserStorage {
 
     void deleteItem(Item item);
 
-    Item addItem(String path, String name, String content);
+    Item addItem(String path, String content);
 
     Item addItem(String path, String name, File content);
 

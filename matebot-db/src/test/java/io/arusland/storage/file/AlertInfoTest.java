@@ -2,6 +2,8 @@ package io.arusland.storage.file;
 
 import org.junit.Test;
 
+import java.util.Calendar;
+
 import static junit.framework.TestCase.*;
 
 /**
@@ -18,7 +20,7 @@ public class AlertInfoTest {
         assertEquals(5, (int) info.day);
         assertEquals(10, (int) info.month);
         assertEquals(2012, (int) info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("Malik birthday", info.message);
     }
 
@@ -32,7 +34,7 @@ public class AlertInfoTest {
         assertEquals(5, (int) info.day);
         assertEquals(12, (int) info.month);
         assertEquals(2017, (int) info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -46,7 +48,7 @@ public class AlertInfoTest {
         assertEquals(5, (int) info.day);
         assertEquals(12, (int) info.month);
         assertEquals(2017, (int) info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -60,7 +62,7 @@ public class AlertInfoTest {
         assertEquals(5, (int) info.day);
         assertEquals(12, (int) info.month);
         assertEquals(2017, (int) info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -74,7 +76,7 @@ public class AlertInfoTest {
         assertEquals(23, (int) info.day);
         assertEquals(2, (int) info.month);
         assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("My message", info.message);
     }
 
@@ -88,7 +90,7 @@ public class AlertInfoTest {
         assertEquals(23, (int) info.day);
         assertEquals(2, (int) info.month);
         assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -102,7 +104,7 @@ public class AlertInfoTest {
         assertEquals(23, (int) info.day);
         assertEquals(2, (int) info.month);
         assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -117,7 +119,7 @@ public class AlertInfoTest {
         assertEquals(7, (int) info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("Hello !", info.message);
     }
 
@@ -131,7 +133,7 @@ public class AlertInfoTest {
         assertEquals(7, (int) info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -145,63 +147,67 @@ public class AlertInfoTest {
         assertEquals(7, (int) info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
     @Test
     public void testShortWithMessage() {
         AlertInfo info = AlertInfo.parse("23:59 Alert message!");
+        Calendar cal = calcNextDayAfterTime(info);
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
         assertEquals(59, info.minute);
-        assertNull(info.day);
-        assertNull(info.month);
-        assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(cal.get(Calendar.DATE), (int) info.day);
+        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
+        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(0, info.weekDays);
         assertEquals("Alert message!", info.message);
     }
 
     @Test
     public void testShortWithEmptyMessage() {
         AlertInfo info = AlertInfo.parse("22:1 ");
+        Calendar cal = calcNextDayAfterTime(info);
 
         assertTrue(info.valid);
         assertEquals(22, info.hour);
         assertEquals(1, info.minute);
-        assertNull(info.day);
-        assertNull(info.month);
-        assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(cal.get(Calendar.DATE), (int) info.day);
+        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
+        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
     @Test
     public void testShortWithoutMessage() {
         AlertInfo info = AlertInfo.parse("12:21");
+        Calendar cal = calcNextDayAfterTime(info);
 
         assertTrue(info.valid);
         assertEquals(12, info.hour);
         assertEquals(21, info.minute);
-        assertNull(info.day);
-        assertNull(info.month);
-        assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(cal.get(Calendar.DATE), (int) info.day);
+        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
+        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
     @Test
     public void testShortWithoutMessageStartsWithSpace() {
         AlertInfo info = AlertInfo.parse(" 12:21");
+        Calendar cal = calcNextDayAfterTime(info);
 
         assertTrue(info.valid);
         assertEquals(12, info.hour);
         assertEquals(21, info.minute);
-        assertNull(info.day);
-        assertNull(info.month);
-        assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(cal.get(Calendar.DATE), (int) info.day);
+        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
+        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(0, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -215,7 +221,7 @@ public class AlertInfoTest {
         assertNull(info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(AlertInfo.DAY_MONDAY | AlertInfo.DAY_TUESDAY | AlertInfo.DAY_SUNDAY, info.weekDay);
+        assertEquals(AlertInfo.DAY_MONDAY | AlertInfo.DAY_TUESDAY | AlertInfo.DAY_SUNDAY, info.weekDays);
         assertEquals("Alert message!", info.message);
     }
 
@@ -229,7 +235,7 @@ public class AlertInfoTest {
         assertNull(info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(AlertInfo.DAY_FRIDAY, info.weekDay);
+        assertEquals(AlertInfo.DAY_FRIDAY, info.weekDays);
         assertEquals("", info.message);
     }
 
@@ -243,21 +249,22 @@ public class AlertInfoTest {
         assertNull(info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(AlertInfo.DAY_FRIDAY | AlertInfo.DAY_SATURDAY | AlertInfo.DAY_SUNDAY, info.weekDay);
+        assertEquals(AlertInfo.DAY_FRIDAY | AlertInfo.DAY_SATURDAY | AlertInfo.DAY_SUNDAY, info.weekDays);
         assertEquals("", info.message);
     }
 
     @Test
     public void testShortWrongWeekDaysWithMessage() {
         AlertInfo info = AlertInfo.parse("23:59 5-8 strange message");
+        Calendar now = Calendar.getInstance();
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
         assertEquals(59, info.minute);
-        assertNull(info.day);
-        assertNull(info.month);
-        assertNull(info.year);
-        assertEquals(0, info.weekDay);
+        assertEquals(now.get(Calendar.DATE), (int) info.day);
+        assertEquals(now.get(Calendar.MONTH) + 1, (int) info.month);
+        assertEquals(now.get(Calendar.YEAR), (int) info.year);
+        assertEquals(0, info.weekDays);
         assertEquals("5-8 strange message", info.message);
     }
 
@@ -352,5 +359,19 @@ public class AlertInfoTest {
         AlertInfo info = AlertInfo.parse(null);
 
         assertNull(info);
+    }
+
+    private static Calendar calcNextDayAfterTime(AlertInfo info) {
+        Calendar now = Calendar.getInstance();
+        int hour = now.get(Calendar.HOUR_OF_DAY);
+        int minute = now.get(Calendar.MINUTE);
+
+        if (hour < info.hour || hour == info.hour && minute < info.minute) {
+            return now;
+        }
+
+        now.add(Calendar.HOUR_OF_DAY, 24);
+
+        return now;
     }
 }

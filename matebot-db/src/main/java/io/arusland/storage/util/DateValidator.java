@@ -16,9 +16,20 @@ public final class DateValidator {
 
     /**
      * Checks if date is valid.
+     */
+    public static boolean isValid(Integer day, Integer month, Integer year) {
+        if (day == null && month == null && year == null) {
+            return false;
+        }
+
+        return DateValidator.isValid(String.format("%2d/%2d/%4d",
+                day != null ? day : 1, month != null ? month : 1, year != null ? year : 2000));
+    }
+
+    /**
+     * Checks if date is valid.
      *
      * @param dateToValidate Input date in format <code>dd/MM/yyyy</code>.
-     * @return
      */
     public static boolean isValid(String dateToValidate) {
         try {

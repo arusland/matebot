@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -16,6 +17,7 @@ import static java.util.stream.Collectors.toList;
  * Created by ruslan on 03.12.2016.
  */
 public class FileUserStorage implements UserStorage {
+    private final static SimpleDateFormat ALERT_FILE_NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
     private final User user;
     private final File root;
     private List<Item> rootItems;
@@ -71,36 +73,49 @@ public class FileUserStorage implements UserStorage {
     }
 
     @Override
-    public Item addItem(String path, String name, String content) {
+    public Item addItem(String path, String content) {
+        AlertInfo alertInfo = AlertInfo.parse(content);
 
+        if (alertInfo != null && alertInfo.valid) {
+            FileItem parent = getFileItemByPath(path, true);
 
-        FileItem parent = getFileItemByPath(path, true);
+            if (parent != null) {
+                if (parent.getType() != ItemType.ALERTS || !parent.isDirectory()) {
+                    parent = (FileItem) getItemByPath(ItemType.ALERTS);
+                }
 
-        if (parent != null) {
-            File file = new File(parent.getFile(), name);
+                if (parent != null) {
+                    String name = generateAlertFileName();
+                    File file = new File(parent.getFile(), name);
 
-            try {
-                FileUtils.writeStringToFile(file, content, "UTF-8");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                    try {
+                        FileUtils.writeStringToFile(file, content, "UTF-8");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
+                    return new FileAlertItem(user, parent.getType(), file, itemPath, alertInfo);
+                }
             }
-
-            ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-            return new FileItem(user, parent.getType(), file, itemPath);
         }
 
         return null;
     }
 
+    private static String generateAlertFileName() {
+        return ALERT_FILE_NAME_FORMAT.format(new Date()) + ".alert";
+    }
+
     @Override
-    public Item addItem(String path, String name, File content) {
+    public Item addItem(String path, String name, File file) {
         FileItem parent = getFileItemByPath(path, true);
 
         if (parent == null) {
-            return addItem(name, content);
+            return addItem(name, file);
         }
 
-        return addItemIntoParentItem(name, content, parent);
+        return addItemIntoParentItem(name, file, parent);
     }
 
     @Override

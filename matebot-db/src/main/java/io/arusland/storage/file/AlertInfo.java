@@ -3,13 +3,13 @@ package io.arusland.storage.file;
 import io.arusland.storage.util.DateValidator;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Alert format parser and fields holder.
+ * <p>
  * Created by ruslan on 10.12.2016.
  */
 public class AlertInfo {
@@ -32,17 +32,17 @@ public class AlertInfo {
     public final Integer year;
     public final Integer month;
     public final Integer day;
-    public final int weekDay;
+    public final int weekDays;
     public final String message;
     public final boolean valid;
 
-    private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year, int weekDay, String message) {
+    private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year, int weekDays, String message) {
         this.hour = hour;
         this.minute = minute;
         this.year = year;
         this.month = month;
         this.day = day;
-        this.weekDay = weekDay;
+        this.weekDays = weekDays;
         this.message = message != null ? message.trim() : "";
         this.valid = calcValid();
     }
@@ -51,8 +51,8 @@ public class AlertInfo {
         this(hour, minute, null, null, null, 0, message);
     }
 
-    public AlertInfo(int hour, int minute, int weekDay, String message) {
-        this(hour, minute, null, null, null, weekDay, message);
+    public AlertInfo(int hour, int minute, int weekDays, String message) {
+        this(hour, minute, null, null, null, weekDays, message);
     }
 
     public AlertInfo(int hour, int minute, Integer day, Integer month, Integer year, String message) {
@@ -64,17 +64,51 @@ public class AlertInfo {
             return false;
         }
 
-        return DateValidator.isValid(String.format("%2d/%2d/%4d",
-                day != null ? day : 1, month != null ? month : 1, year != null ? year : 2000));
+        return DateValidator.isValid(day, month, year);
     }
 
-    public static AlertInfo parse(final String input0) {
-        if (StringUtils.isBlank(input0)) {
+    public static AlertInfo parse(final String input) {
+        if (StringUtils.isBlank(input)) {
             return null;
         }
 
-        final String input = input0.trim();
+        AlertInfo info = parseInternal(input.trim());
 
+        return normalize(info);
+    }
+
+    /**
+     * Normazlize fields (year, month, day) of {@link AlertInfo}
+     * when they all are <code>null</code>.
+     *
+     * @param info input instance.
+     */
+    private static AlertInfo normalize(final AlertInfo info) {
+        if (info == null || !info.valid) {
+            return info;
+        }
+
+        if (info.weekDays == 0 &&
+                info.year == null && info.month == null && info.day == null) {
+            Calendar cal = Calendar.getInstance();
+            long currentMilis = cal.getTimeInMillis();
+            cal.set(Calendar.HOUR_OF_DAY, info.hour);
+            cal.set(Calendar.MINUTE, info.minute);
+
+            // we have to alert tomorrow at specified time
+            if (cal.getTimeInMillis() < currentMilis) {
+                cal.add(Calendar.HOUR_OF_DAY, 24);
+            }
+
+            return new AlertInfo(info.hour, info.minute,
+                    cal.get(Calendar.DATE), cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.YEAR), info.message);
+        }
+
+        return info;
+    }
+
+    private static AlertInfo parseInternal(final String input) {
         Matcher mc = ALERT_FULL_PATTERN.matcher(input);
 
         if (mc.find()) {

@@ -20,9 +20,23 @@ import java.util.Date;
  * Created by ruslan on 10.12.2016.
  */
 public interface AlertItem extends Item {
+    /**
+     * Next alert time.
+     */
     Date nextTime();
 
+    /**
+     * Alert message.
+     */
     String getMessage();
 
+    /**
+     * Title of the alert.
+     */
+    String getTitle();
+
+    /**
+     * Alert is not active.
+     */
     boolean isActive();
 }
