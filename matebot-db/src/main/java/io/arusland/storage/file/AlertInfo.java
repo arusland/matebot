@@ -64,6 +64,10 @@ public class AlertInfo {
             return false;
         }
 
+        if (day == null && month == null && year == null) {
+            return true;
+        }
+
         return DateValidator.isValid(day, month, year);
     }
 
