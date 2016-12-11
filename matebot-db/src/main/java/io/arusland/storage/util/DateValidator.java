@@ -14,6 +14,12 @@ public final class DateValidator {
         sdf.setLenient(false);
     }
 
+    /**
+     * Checks if date is valid.
+     *
+     * @param dateToValidate Input date in format <code>dd/MM/yyyy</code>.
+     * @return
+     */
     public static boolean isValid(String dateToValidate) {
         try {
             //if not valid, it will throw ParseException
