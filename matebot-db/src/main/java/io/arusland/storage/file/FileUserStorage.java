@@ -74,7 +74,6 @@ public class FileUserStorage implements UserStorage {
     public Item addItem(String path, String name, String content) {
 
 
-
         FileItem parent = getFileItemByPath(path, true);
 
         if (parent != null) {

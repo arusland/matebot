@@ -7,3 +7,6 @@
 /matebot-db/target
 /matedb_
 /dist/application.properties
+/logs
+/dist/logs
+/dist/matedb_

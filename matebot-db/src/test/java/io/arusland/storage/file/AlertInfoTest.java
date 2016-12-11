@@ -10,7 +10,7 @@ import static junit.framework.TestCase.*;
 public class AlertInfoTest {
     @Test
     public void testFullWithMessage() {
-        AlertInfo info = FileAlertItem.parse("7:43 05:10:2012 Malik birthday ");
+        AlertInfo info = AlertInfo.parse("7:43 05:10:2012 Malik birthday ");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -24,7 +24,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutMessage() {
-        AlertInfo info = FileAlertItem.parse("07:03 5:12:2017");
+        AlertInfo info = AlertInfo.parse("07:03 5:12:2017");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -38,7 +38,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithEmptyMessage() {
-        AlertInfo info = FileAlertItem.parse("07:03 5:12:2017 ");
+        AlertInfo info = AlertInfo.parse("07:03 5:12:2017 ");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -52,7 +52,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearWithMessage() {
-        AlertInfo info = FileAlertItem.parse("07:3 23:2 My message");
+        AlertInfo info = AlertInfo.parse("07:3 23:2 My message");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -66,7 +66,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearWithEmptyMessage() {
-        AlertInfo info = FileAlertItem.parse("07:3 23:2 ");
+        AlertInfo info = AlertInfo.parse("07:3 23:2 ");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -80,7 +80,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearWithoutMessage() {
-        AlertInfo info = FileAlertItem.parse("07:3 23:2");
+        AlertInfo info = AlertInfo.parse("07:3 23:2");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -95,7 +95,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithMessage() {
-        AlertInfo info = FileAlertItem.parse("14:33 7: Hello !");
+        AlertInfo info = AlertInfo.parse("14:33 7: Hello !");
 
         assertTrue(info.valid);
         assertEquals(14, info.hour);
@@ -109,7 +109,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithEmptyMessage() {
-        AlertInfo info = FileAlertItem.parse("14:33 7: ");
+        AlertInfo info = AlertInfo.parse("14:33 7: ");
 
         assertTrue(info.valid);
         assertEquals(14, info.hour);
@@ -123,7 +123,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithoutMessage() {
-        AlertInfo info = FileAlertItem.parse("14:33 7:");
+        AlertInfo info = AlertInfo.parse("14:33 7:");
 
         assertTrue(info.valid);
         assertEquals(14, info.hour);
@@ -137,7 +137,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithMessage() {
-        AlertInfo info = FileAlertItem.parse("23:59 Alert message!");
+        AlertInfo info = AlertInfo.parse("23:59 Alert message!");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -151,7 +151,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithEmptyMessage() {
-        AlertInfo info = FileAlertItem.parse("22:1 ");
+        AlertInfo info = AlertInfo.parse("22:1 ");
 
         assertTrue(info.valid);
         assertEquals(22, info.hour);
@@ -165,7 +165,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithoutMessage() {
-        AlertInfo info = FileAlertItem.parse("12:21");
+        AlertInfo info = AlertInfo.parse("12:21");
 
         assertTrue(info.valid);
         assertEquals(12, info.hour);
@@ -179,7 +179,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWeekDaysWithMessage() {
-        AlertInfo info = FileAlertItem.parse("23:59 1-2,7 Alert message!");
+        AlertInfo info = AlertInfo.parse("23:59 1-2,7 Alert message!");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -193,7 +193,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWeekDaysWithEmptyMessage() {
-        AlertInfo info = FileAlertItem.parse("23:59 5 ");
+        AlertInfo info = AlertInfo.parse("23:59 5 ");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -207,7 +207,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWeekDaysWithoutMessage() {
-        AlertInfo info = FileAlertItem.parse("23:59 5-7");
+        AlertInfo info = AlertInfo.parse("23:59 5-7");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -221,7 +221,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWrongWeekDaysWithMessage() {
-        AlertInfo info = FileAlertItem.parse("23:59 5-8 strange message");
+        AlertInfo info = AlertInfo.parse("23:59 5-8 strange message");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -237,105 +237,105 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithMessageInvalid() {
-        AlertInfo info = FileAlertItem.parse("7:43 05:13:2012 Malik birthday ");
+        AlertInfo info = AlertInfo.parse("7:43 05:13:2012 Malik birthday ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWith29FebInvalid() {
-        AlertInfo info = FileAlertItem.parse("7:43 29:2:2001 ");
+        AlertInfo info = AlertInfo.parse("7:43 29:2:2001 ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWithZeroDayInvalid() {
-        AlertInfo info = FileAlertItem.parse("7:43 0:02:2001");
+        AlertInfo info = AlertInfo.parse("7:43 0:02:2001");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWithZeroMonthNovInvalid() {
-        AlertInfo info = FileAlertItem.parse("7:43 1:0:2012  ");
+        AlertInfo info = AlertInfo.parse("7:43 1:0:2012  ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWith31NovInvalid() {
-        AlertInfo info = FileAlertItem.parse("7:43 31:11:2000");
+        AlertInfo info = AlertInfo.parse("7:43 31:11:2000");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testWithTimeInvalid() {
-        AlertInfo info = FileAlertItem.parse("24:00 ");
+        AlertInfo info = AlertInfo.parse("24:00 ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testWithTimeMinuteInvalid() {
-        AlertInfo info = FileAlertItem.parse("13:60 foo bar");
+        AlertInfo info = AlertInfo.parse("13:60 foo bar");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFormatInvalid() {
-        AlertInfo info = FileAlertItem.parse("13:");
+        AlertInfo info = AlertInfo.parse("13:");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid2() {
-        AlertInfo info = FileAlertItem.parse("13: ");
+        AlertInfo info = AlertInfo.parse("13: ");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid3() {
-        AlertInfo info = FileAlertItem.parse("2");
+        AlertInfo info = AlertInfo.parse("2");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid4() {
-        AlertInfo info = FileAlertItem.parse("05:5D");
+        AlertInfo info = AlertInfo.parse("05:5D");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid5() {
-        AlertInfo info = FileAlertItem.parse("");
+        AlertInfo info = AlertInfo.parse("");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid6() {
-        AlertInfo info = FileAlertItem.parse(null);
+        AlertInfo info = AlertInfo.parse(null);
 
         assertNull(info);
     }
 
     @Test
     public void testTimeStartsWithSpaceInvalid() {
-        AlertInfo info = FileAlertItem.parse(" 10:12");
+        AlertInfo info = AlertInfo.parse(" 10:12");
 
         assertNull(info);
     }
 
     @Test
     public void testDateStartsWithSpaceInvalid() {
-        AlertInfo info = FileAlertItem.parse(" 10:12 21:02:2014");
+        AlertInfo info = AlertInfo.parse(" 10:12 21:02:2014");
 
         assertNull(info);
     }
