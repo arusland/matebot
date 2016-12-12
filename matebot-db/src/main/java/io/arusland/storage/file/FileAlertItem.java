@@ -20,7 +20,6 @@ public class FileAlertItem extends FileItem implements AlertItem {
     private final AlertInfo info;
     private Date nextDate;
     private String title;
-    private boolean isActive;
 
     public FileAlertItem(User user, ItemType type, File file, ItemPath path, AlertInfo info) {
         super(user, type, file, path);
@@ -48,7 +47,7 @@ public class FileAlertItem extends FileItem implements AlertItem {
 
     @Override
     public boolean isActive() {
-        return isActive;
+        return nextDate != null && System.currentTimeMillis() < nextDate.getTime();
     }
 
     public AlertInfo getInfo() {
@@ -58,6 +57,7 @@ public class FileAlertItem extends FileItem implements AlertItem {
     private void calcNextState() {
         Calendar alertTime = Calendar.getInstance();
         long nowMillis = alertTime.getTimeInMillis();
+        alertTime.set(Calendar.SECOND, 0);
         alertTime.set(Calendar.HOUR_OF_DAY, info.hour);
         alertTime.set(Calendar.MINUTE, info.minute);
 
@@ -101,7 +101,6 @@ public class FileAlertItem extends FileItem implements AlertItem {
 
     private void refreshState(Date date) {
         nextDate = date;
-        isActive = nextDate.getTime() > System.currentTimeMillis();
     }
 
     private static List<Integer> getAlertDays(int flags) {
@@ -122,5 +121,13 @@ public class FileAlertItem extends FileItem implements AlertItem {
     private static int getDayOfWeek(Calendar cal) {
         int day = cal.get(Calendar.DAY_OF_WEEK);
         return day == Calendar.SUNDAY ? 7 : day - 1;
+    }
+
+    @Override
+    public String toString() {
+        return "FileAlertItem{" +
+                "nextDate=" + nextDate +
+                ", title='" + title + '\'' +
+                '}';
     }
 }

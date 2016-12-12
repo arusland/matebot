@@ -34,6 +34,7 @@ public class AlertInfo {
     public final Integer day;
     public final int weekDays;
     public final String message;
+    public final String content;
     public final boolean valid;
 
     private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year, int weekDays, String message) {
@@ -45,6 +46,7 @@ public class AlertInfo {
         this.weekDays = weekDays;
         this.message = message != null ? message.trim() : "";
         this.valid = calcValid();
+        this.content = "";
     }
 
     public AlertInfo(int hour, int minute, String message) {
@@ -95,12 +97,12 @@ public class AlertInfo {
         if (info.weekDays == 0 &&
                 info.year == null && info.month == null && info.day == null) {
             Calendar cal = Calendar.getInstance();
-            long currentMilis = cal.getTimeInMillis();
+            long currentMillis = cal.getTimeInMillis();
             cal.set(Calendar.HOUR_OF_DAY, info.hour);
             cal.set(Calendar.MINUTE, info.minute);
 
             // we have to alert tomorrow at specified time
-            if (cal.getTimeInMillis() < currentMilis) {
+            if (cal.getTimeInMillis() < currentMillis) {
                 cal.add(Calendar.HOUR_OF_DAY, 24);
             }
 

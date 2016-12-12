@@ -79,25 +79,25 @@ public class FileUserStorage implements UserStorage {
         if (alertInfo != null && alertInfo.valid) {
             FileItem parent = getFileItemByPath(path, true);
 
-            if (parent != null) {
-                if (parent.getType() != ItemType.ALERTS || !parent.isDirectory()) {
-                    parent = (FileItem) getItemByPath(ItemType.ALERTS);
-                }
-
-                if (parent != null) {
-                    String name = generateAlertFileName();
-                    File file = new File(parent.getFile(), name);
-
-                    try {
-                        FileUtils.writeStringToFile(file, content, "UTF-8");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-                    return new FileAlertItem(user, parent.getType(), file, itemPath, alertInfo);
-                }
+            if (parent == null || parent.getType() != ItemType.ALERTS || !parent.isDirectory()) {
+                parent = (FileItem) getItemByPath(ItemType.ALERTS);
             }
+
+            if (parent != null) {
+                String name = generateAlertFileName();
+                File file = new File(parent.getFile(), name);
+
+                // FIXME: save alertInfo.content instead of content!!!!
+                try {
+                    FileUtils.writeStringToFile(file, content, "UTF-8");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
+                return new FileAlertItem(user, parent.getType(), file, itemPath, alertInfo);
+            }
+
         }
 
         return null;

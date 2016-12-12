@@ -1,6 +1,7 @@
 package io.arusland.bots.base;
 
 import io.arusland.bots.commands.ShortcutCommand;
+import io.arusland.storage.AlertItem;
 import io.arusland.storage.UserStorage;
 import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -9,6 +10,7 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Created by ruslan on 03.12.2016.
@@ -59,4 +61,8 @@ public interface BotContext {
      * @param user User.
      */
     void clearShortcutCommands(User user);
+
+    void enqueueAlert(AlertItem addedItem, Runnable consumer);
+
+    void dequeueAlert(AlertItem alert);
 }

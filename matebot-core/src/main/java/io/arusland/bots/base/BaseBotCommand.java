@@ -12,6 +12,8 @@ import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.bots.commands.BotCommand;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Created by ruslan on 03.12.2016.
  */
@@ -65,5 +67,12 @@ public abstract class BaseBotCommand extends BotCommand {
         }
 
         return null;
+    }
+
+    @NotNull
+    public String getCurrentPath(User user) {
+        String currentPath = getContext().getCurrentPath(user);
+
+        return StringUtils.defaultString(currentPath, "/");
     }
 }

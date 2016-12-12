@@ -3,6 +3,8 @@ package io.arusland.bots;
 import io.arusland.bots.base.BaseCommandBot;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.commands.*;
+import io.arusland.bots.utils.TimeManagement;
+import io.arusland.storage.AlertItem;
 import io.arusland.storage.Storage;
 import io.arusland.storage.StorageFactory;
 import io.arusland.storage.UserStorage;
@@ -29,6 +31,8 @@ public class MateBot extends BaseCommandBot implements BotContext {
     private final Map<Integer, String> currentPath = new HashMap<>();
     private final List<ShortcutCommand> shortcutCommands = new ArrayList<>();
     private final CommonCommand commonCommand;
+    private final TimeManagement timeManagement = new TimeManagement();
+    private final Map<AlertItem, Date> alerts = Collections.synchronizedMap(new IdentityHashMap<>());
 
     public MateBot(BotConfig config) {
         super();
@@ -95,6 +99,29 @@ public class MateBot extends BaseCommandBot implements BotContext {
     @Override
     public void clearShortcutCommands(User user) {
         shortcutCommands.removeIf(p -> p.getUserId().equals(user.getId()));
+    }
+
+    @Override
+    public void enqueueAlert(AlertItem alert, Runnable handler) {
+        Date time = alert.nextTime();
+
+        if (time != null) {
+            alerts.put(alert, time);
+            timeManagement.enqueue(time, () -> {
+                alerts.remove(time);
+                handler.run();
+            });
+        }
+    }
+
+    @Override
+    public void dequeueAlert(AlertItem alert) {
+        Date time = alerts.get(alert);
+
+        if (time != null) {
+            alerts.remove(alert);
+            timeManagement.dequeue(time);
+        }
     }
 
     @Override

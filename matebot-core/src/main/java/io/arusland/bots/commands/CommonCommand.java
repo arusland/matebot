@@ -2,6 +2,8 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
+import io.arusland.bots.utils.TimeUtils;
+import io.arusland.storage.AlertItem;
 import io.arusland.storage.Item;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FilenameUtils;
@@ -16,6 +18,7 @@ import org.telegram.telegrambots.bots.commands.BotCommand;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 
 /**
@@ -24,7 +27,8 @@ import java.util.Date;
  * Created by ruslan on 03.12.2016.
  */
 public class CommonCommand extends BaseBotCommand {
-    private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+    private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
+    private final static DateFormat ALERT_FORMAT = new SimpleDateFormat("HH:mm: dd.MM.yyyy");
 
     public CommonCommand(BotContext context) {
         super("common", "This command not visible in menu!", context);
@@ -87,8 +91,7 @@ public class CommonCommand extends BaseBotCommand {
             java.io.File downloadedFile = getContext().doDownloadFile(file);
 
             try {
-                String currentPath = StringUtils.defaultString(getContext().getCurrentPath(user), "/");
-
+                String currentPath = getCurrentPath(user);
                 Item addedItem = storage.addItem(currentPath, fileName, downloadedFile);
 
                 if (addedItem != null) {
@@ -114,17 +117,64 @@ public class CommonCommand extends BaseBotCommand {
             }
         }
 
-        Item currentItem = getCurrentItem(user);
+        String msg = message.getText().trim();
 
-        if (currentItem != null) {
-            StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNoneBlank(msg)) {
+            String currentPath = getCurrentPath(user);
+            Item addedItem = storage.addItem(currentPath, msg);
 
-            sb.append("Current dir: ");
-            sb.append(currentItem.getFullPath());
-            sb.append("\n");
-
-            sendMessage(message.getChat().getId(), sb.toString());
+            if (addedItem != null) {
+                if (addedItem instanceof AlertItem) {
+                    handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage);
+                } else {
+                    // TODO: !!!
+                }
+            } else {
+                sendMessage(message.getChatId(), "⚠ invalid input");
+            }
         }
+    }
+
+    private void handleAlertItem(Long chatId, AlertItem addedItem, UserStorage storage) {
+        long diff = addedItem.nextTime().getTime() - System.currentTimeMillis();
+
+        if (diff > 0) {
+            Duration duration = Duration.ofMillis(diff);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Alert added!\n");
+            sb.append("Notification time: ");
+            sb.append(ALERT_FORMAT.format(addedItem.nextTime()));
+            sb.append("\n");
+            sb.append("Notification in ");
+            sb.append(duration.toMinutes() + " min.");
+
+            sendMessage(chatId, sb.toString());
+            enqueueAlert(addedItem, chatId);
+
+            return;
+        }
+
+        storage.deleteItem(addedItem);
+    }
+
+    private void enqueueAlert(AlertItem alert, Long chatId) {
+        log.info("Alert added to queue: " + alert);
+
+        getContext().enqueueAlert(alert, () -> {
+            log.info("Alert fired: " + alert);
+
+            if (StringUtils.isNotBlank(alert.getMessage())) {
+                sendMessage(chatId, alert.getMessage());
+            } else {
+                sendMessage(chatId, "Alert!!!");
+            }
+
+            if (alert.isActive()) {
+                // if alert is active enqueue it again
+                enqueueAlert(alert, chatId);
+            }
+        });
     }
 
     private void handleShortcutCommand(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage) {
