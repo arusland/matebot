@@ -37,7 +37,8 @@ public class AlertInfo {
     public final String content;
     public final boolean valid;
 
-    private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year, int weekDays, String message) {
+    private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year,
+                      int weekDays, String message, String content) {
         this.hour = hour;
         this.minute = minute;
         this.year = year;
@@ -46,19 +47,20 @@ public class AlertInfo {
         this.weekDays = weekDays;
         this.message = message != null ? message.trim() : "";
         this.valid = calcValid();
-        this.content = "";
+        this.content = content;
     }
 
-    public AlertInfo(int hour, int minute, String message) {
-        this(hour, minute, null, null, null, 0, message);
+    public AlertInfo(int hour, int minute, String message, String content) {
+        this(hour, minute, null, null, null, 0, message, content);
     }
 
-    public AlertInfo(int hour, int minute, int weekDays, String message) {
-        this(hour, minute, null, null, null, weekDays, message);
+    public AlertInfo(int hour, int minute, int weekDays, String message, String content) {
+        this(hour, minute, null, null, null, weekDays, message, content);
     }
 
-    public AlertInfo(int hour, int minute, Integer day, Integer month, Integer year, String message) {
-        this(hour, minute, day, month, year, 0, message);
+    public AlertInfo(int hour, int minute, Integer day, Integer month,
+                     Integer year, String message, String content) {
+        this(hour, minute, day, month, year, 0, message, content);
     }
 
     private boolean calcValid() {
@@ -106,9 +108,18 @@ public class AlertInfo {
                 cal.add(Calendar.HOUR_OF_DAY, 24);
             }
 
-            return new AlertInfo(info.hour, info.minute,
-                    cal.get(Calendar.DATE), cal.get(Calendar.MONTH) + 1,
-                    cal.get(Calendar.YEAR), info.message);
+            int year = cal.get(Calendar.YEAR);
+            int month = cal.get(Calendar.MONTH) + 1;
+            int day = cal.get(Calendar.DATE);
+            String content = String.format("%d:%d %d:%d:%d",
+                    info.hour, info.minute, day, month, year);
+
+            if (StringUtils.isNotBlank(info.message)) {
+                content += " " + info.message;
+            }
+
+            return new AlertInfo(info.hour, info.minute, day,
+                    month, year, info.message, content);
         }
 
         return info;
@@ -119,21 +130,21 @@ public class AlertInfo {
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), Integer.parseInt(mc.group(3)),
-                    Integer.parseInt(mc.group(4)), Integer.parseInt(mc.group(5)), mc.group(6));
+                    Integer.parseInt(mc.group(4)), Integer.parseInt(mc.group(5)), mc.group(6), input);
         }
 
         mc = ALERT_FULL_PATTERN2.matcher(input);
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), Integer.parseInt(mc.group(3)),
-                    Integer.parseInt(mc.group(4)), null, mc.group(5));
+                    Integer.parseInt(mc.group(4)), null, mc.group(5), input);
         }
 
         mc = ALERT_FULL_PATTERN3.matcher(input);
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), Integer.parseInt(mc.group(3)),
-                    null, null, mc.group(4));
+                    null, null, mc.group(4), input);
         }
 
         mc = ALERT_WEEK_PATTERN.matcher(input);
@@ -142,14 +153,16 @@ public class AlertInfo {
             int flags = parseFlags(mc.group(3));
 
             if (flags > 0) {
-                return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), flags, mc.group(4));
+                return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)),
+                        flags, mc.group(4), input);
             }
         }
 
         mc = ALERT_SHORT_PATTERN.matcher(input);
 
         if (mc.find()) {
-            return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), mc.group(3));
+            return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)),
+                    mc.group(3), input);
         }
 
         return null;

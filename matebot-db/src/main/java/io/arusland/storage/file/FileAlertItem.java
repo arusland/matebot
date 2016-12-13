@@ -21,8 +21,8 @@ public class FileAlertItem extends FileItem implements AlertItem {
     private Date nextDate;
     private String title;
 
-    public FileAlertItem(User user, ItemType type, File file, ItemPath path, AlertInfo info) {
-        super(user, type, file, path);
+    public FileAlertItem(User user, File file, ItemPath path, AlertInfo info) {
+        super(user, ItemType.ALERTS, file, path);
         this.info = Validate.notNull(info, "info");
     }
 

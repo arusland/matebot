@@ -22,6 +22,7 @@ public class AlertInfoTest {
         assertEquals(2012, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("Malik birthday", info.message);
+        assertEquals("7:43 05:10:2012 Malik birthday", info.content);
     }
 
     @Test
@@ -36,6 +37,7 @@ public class AlertInfoTest {
         assertEquals(2017, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("07:03 5:12:2017", info.content);
     }
 
     @Test
@@ -50,6 +52,7 @@ public class AlertInfoTest {
         assertEquals(2017, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("07:03 5:12:2017", info.content);
     }
 
     @Test
@@ -64,6 +67,7 @@ public class AlertInfoTest {
         assertEquals(2017, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("07:03 5:12:2017", info.content);
     }
 
     @Test
@@ -78,6 +82,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("My message", info.message);
+        assertEquals("07:3 23:2 My message", info.content);
     }
 
     @Test
@@ -92,6 +97,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("07:3 23:2", info.content);
     }
 
     @Test
@@ -106,6 +112,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("07:3 23:2", info.content);
     }
 
 
@@ -121,6 +128,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("Hello !", info.message);
+        assertEquals("14:33 7: Hello !", info.content);
     }
 
     @Test
@@ -135,6 +143,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("14:33 7:", info.content);
     }
 
     @Test
@@ -149,66 +158,83 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("14:33 7:", info.content);
     }
 
     @Test
     public void testShortWithMessage() {
         AlertInfo info = AlertInfo.parse("23:59 Alert message!");
         Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
         assertEquals(59, info.minute);
-        assertEquals(cal.get(Calendar.DATE), (int) info.day);
-        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
-        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("Alert message!", info.message);
+        assertEquals(String.format("23:59 %d:%d:%d Alert message!", day, month, year), info.content);
     }
 
     @Test
     public void testShortWithEmptyMessage() {
         AlertInfo info = AlertInfo.parse("22:1 ");
         Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
 
         assertTrue(info.valid);
         assertEquals(22, info.hour);
         assertEquals(1, info.minute);
-        assertEquals(cal.get(Calendar.DATE), (int) info.day);
-        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
-        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals(String.format("22:1 %d:%d:%d", day, month, year), info.content);
     }
 
     @Test
     public void testShortWithoutMessage() {
         AlertInfo info = AlertInfo.parse("12:21");
         Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
 
         assertTrue(info.valid);
         assertEquals(12, info.hour);
         assertEquals(21, info.minute);
-        assertEquals(cal.get(Calendar.DATE), (int) info.day);
-        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
-        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals(String.format("12:21 %d:%d:%d", day, month, year), info.content);
     }
 
     @Test
     public void testShortWithoutMessageStartsWithSpace() {
         AlertInfo info = AlertInfo.parse(" 12:21");
         Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
 
         assertTrue(info.valid);
         assertEquals(12, info.hour);
         assertEquals(21, info.minute);
-        assertEquals(cal.get(Calendar.DATE), (int) info.day);
-        assertEquals(cal.get(Calendar.MONTH) + 1, (int) info.month);
-        assertEquals(cal.get(Calendar.YEAR), (int) info.year);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
+        assertEquals(String.format("12:21 %d:%d:%d", day, month, year), info.content);
     }
 
     @Test
@@ -223,6 +249,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(AlertInfo.DAY_MONDAY | AlertInfo.DAY_TUESDAY | AlertInfo.DAY_SUNDAY, info.weekDays);
         assertEquals("Alert message!", info.message);
+        assertEquals("23:59 1-2,7 Alert message!", info.content);
     }
 
     @Test
@@ -237,6 +264,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(AlertInfo.DAY_FRIDAY, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("23:59 5", info.content);
     }
 
     @Test
@@ -251,21 +279,26 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(AlertInfo.DAY_FRIDAY | AlertInfo.DAY_SATURDAY | AlertInfo.DAY_SUNDAY, info.weekDays);
         assertEquals("", info.message);
+        assertEquals("23:59 5-7", info.content);
     }
 
     @Test
     public void testShortWrongWeekDaysWithMessage() {
         AlertInfo info = AlertInfo.parse("23:59 5-8 strange message");
-        Calendar now = Calendar.getInstance();
+        Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
         assertEquals(59, info.minute);
-        assertEquals(now.get(Calendar.DATE), (int) info.day);
-        assertEquals(now.get(Calendar.MONTH) + 1, (int) info.month);
-        assertEquals(now.get(Calendar.YEAR), (int) info.year);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("5-8 strange message", info.message);
+        assertEquals(String.format("23:59 %d:%d:%d 5-8 strange message", day, month, year), info.content);
     }
 
     // invalid dates tests

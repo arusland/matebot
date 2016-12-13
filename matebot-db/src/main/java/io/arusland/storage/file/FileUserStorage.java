@@ -74,9 +74,9 @@ public class FileUserStorage implements UserStorage {
 
     @Override
     public Item addItem(String path, String content) {
-        AlertInfo alertInfo = AlertInfo.parse(content);
+        AlertInfo info = AlertInfo.parse(content);
 
-        if (alertInfo != null && alertInfo.valid) {
+        if (info != null && info.valid) {
             FileItem parent = getFileItemByPath(path, true);
 
             if (parent == null || parent.getType() != ItemType.ALERTS || !parent.isDirectory()) {
@@ -87,15 +87,14 @@ public class FileUserStorage implements UserStorage {
                 String name = generateAlertFileName();
                 File file = new File(parent.getFile(), name);
 
-                // FIXME: save alertInfo.content instead of content!!!!
                 try {
-                    FileUtils.writeStringToFile(file, content, "UTF-8");
+                    FileUtils.writeStringToFile(file, info.content, "UTF-8");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
                 ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-                return new FileAlertItem(user, parent.getType(), file, itemPath, alertInfo);
+                return new FileAlertItem(user, file, itemPath, info);
             }
 
         }
@@ -190,7 +189,22 @@ public class FileUserStorage implements UserStorage {
             }
 
             if (result.exists()) {
-                return new FileItem(user, itemPath.getType(), result, itemPath);
+                ItemType fileType = ItemType.fromFileName(result.getName());
+
+                if (fileType != ItemType.ALERTS) {
+                    return new FileItem(user, itemPath.getType(), result, itemPath);
+                }
+
+                try {
+                    String content = FileUtils.readFileToString(result, "UTF-8");
+                    AlertInfo info = AlertInfo.parse(content);
+
+                    if (info != null) {
+                        return new FileAlertItem(user, result, itemPath, info);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
