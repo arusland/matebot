@@ -1,5 +1,6 @@
 package io.arusland.storage.file;
 
+import io.arusland.storage.TestUtils;
 import org.junit.Test;
 
 import java.util.Calendar;
@@ -395,16 +396,6 @@ public class AlertInfoTest {
     }
 
     private static Calendar calcNextDayAfterTime(AlertInfo info) {
-        Calendar now = Calendar.getInstance();
-        int hour = now.get(Calendar.HOUR_OF_DAY);
-        int minute = now.get(Calendar.MINUTE);
-
-        if (hour < info.hour || hour == info.hour && minute < info.minute) {
-            return now;
-        }
-
-        now.add(Calendar.HOUR_OF_DAY, 24);
-
-        return now;
+        return TestUtils.calcNextDayAfterTime(info.hour, info.minute);
     }
 }

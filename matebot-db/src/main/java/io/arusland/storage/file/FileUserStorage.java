@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Created by ruslan on 03.12.2016.
  */
-public class FileUserStorage implements UserStorage {
+public class FileUserStorage implements UserStorage, ItemFactory {
     private final static SimpleDateFormat ALERT_FILE_NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
     private final User user;
     private final File root;
@@ -94,7 +94,7 @@ public class FileUserStorage implements UserStorage {
                 }
 
                 ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-                return new FileAlertItem(user, file, itemPath, info);
+                return new FileAlertItem(user, file, itemPath, info, this);
             }
 
         }
@@ -151,7 +151,7 @@ public class FileUserStorage implements UserStorage {
             }
 
             ItemPath itemPath = ItemPath.parse(futurePath);
-            return new FileItem(user, parent.getType(), file, itemPath);
+            return new FileItem(user, parent.getType(), file, itemPath, this);
         }
 
         return null;
@@ -182,32 +182,62 @@ public class FileUserStorage implements UserStorage {
                 typeDir.mkdirs();
             }
 
-            File result = new File(root, itemPath.getPath());
+            File targetFile = new File(root, itemPath.getPath());
 
-            if (createDirsIf && !result.exists()) {
-                result.mkdirs();
+            if (createDirsIf && !targetFile.exists()) {
+                targetFile.mkdirs();
             }
 
-            if (result.exists()) {
-                ItemType fileType = ItemType.fromFileName(result.getName());
+            if (targetFile.exists()) {
+                if (targetFile.isDirectory()) {
+                    return new FileItem(user, itemPath.getType(), targetFile, itemPath, this);
+                } else {
+                    Optional<Item> item = fromFile(itemPath.getType(), targetFile, itemPath);
 
-                if (fileType != ItemType.ALERTS) {
-                    return new FileItem(user, itemPath.getType(), result, itemPath);
-                }
-
-                try {
-                    String content = FileUtils.readFileToString(result, "UTF-8");
-                    AlertInfo info = AlertInfo.parse(content);
-
-                    if (info != null) {
-                        return new FileAlertItem(user, result, itemPath, info);
+                    if (item.isPresent()) {
+                        return (FileItem) item.get();
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
             }
         }
 
         return null;
+    }
+
+    @Override
+    public Optional<Item> fromFile(ItemType type, File file, ItemPath itemPath) {
+        ItemType fileType = ItemType.fromFileName(file.getName());
+
+        if (fileType == type) {
+            if (fileType != ItemType.ALERTS) {
+                return Optional.of(new FileItem(user, itemPath.getType(), file, itemPath, this));
+            }
+
+            Optional<FileAlertItem> item = createAlertItem(file, itemPath);
+
+            if (item.isPresent()) {
+                return Optional.of(item.get());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Creates {@link FileAlertItem} from file.
+     */
+    private Optional<FileAlertItem> createAlertItem(File file, ItemPath itemPath) {
+        try {
+            String content = FileUtils.readFileToString(file, "UTF-8");
+            AlertInfo info = AlertInfo.parse(content);
+
+            if (info != null) {
+                return Optional.of(new FileAlertItem(user, file, itemPath, info, this));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return Optional.empty();
     }
 }

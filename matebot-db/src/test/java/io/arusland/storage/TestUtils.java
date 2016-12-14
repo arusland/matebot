@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 
 import static junit.framework.TestCase.assertTrue;
 
@@ -26,5 +27,22 @@ public class TestUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Calendar calcNextDayAfterTime(int hour, int minute) {
+        Calendar now = Calendar.getInstance();
+        int hourNow = now.get(Calendar.HOUR_OF_DAY);
+        int minuteNow = now.get(Calendar.MINUTE);
+
+        if (hourNow > hour || hourNow == hour && minuteNow > minute) {
+            now.add(Calendar.HOUR_OF_DAY, 24);
+        }
+
+        now.set(Calendar.HOUR_OF_DAY, hour);
+        now.set(Calendar.MINUTE, minute);
+        now.set(Calendar.SECOND, 0);
+        now.set(Calendar.MILLISECOND, 0);
+
+        return now;
     }
 }

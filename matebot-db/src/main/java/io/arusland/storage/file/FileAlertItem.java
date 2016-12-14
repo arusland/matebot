@@ -1,28 +1,28 @@
 package io.arusland.storage.file;
 
-import io.arusland.storage.AlertItem;
-import io.arusland.storage.ItemPath;
-import io.arusland.storage.ItemType;
-import io.arusland.storage.User;
+import io.arusland.storage.*;
 import io.arusland.storage.util.DateValidator;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by ruslan on 10.12.2016.
  */
-public class FileAlertItem extends FileItem implements AlertItem {
+public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
+    private static final int MESSAGE_TITLE_LENGTH = 10;
     private final AlertInfo info;
     private Date nextDate;
     private String title;
 
-    public FileAlertItem(User user, File file, ItemPath path, AlertInfo info) {
-        super(user, ItemType.ALERTS, file, path);
+    public FileAlertItem(User user, File file, ItemPath path, AlertInfo info, ItemFactory itemFactory) {
+        super(user, ItemType.ALERTS, file, path, itemFactory);
         this.info = Validate.notNull(info, "info");
     }
 
@@ -50,6 +50,24 @@ public class FileAlertItem extends FileItem implements AlertItem {
         return nextDate != null && System.currentTimeMillis() < nextDate.getTime();
     }
 
+    @Override
+    public List<AlertItem> listItems() {
+        if (isDirectory()) {
+            List<AlertItem> result = Arrays.stream(getFile()
+                    .listFiles(TypedFileFilter.get(ItemType.ALERTS)))
+                    .map(f -> getItemFactory().fromFile(ItemType.ALERTS, f, ItemPath.parse(getFullPath() + "/" + f.getName())))
+                    .filter(p -> p.isPresent())
+                    .map(p -> (AlertItem) p.get())
+                    .collect(toList());
+
+            result.sort(this);
+
+            return result;
+        }
+
+        return Collections.emptyList();
+    }
+
     public AlertInfo getInfo() {
         return info;
     }
@@ -58,6 +76,7 @@ public class FileAlertItem extends FileItem implements AlertItem {
         Calendar alertTime = Calendar.getInstance();
         long nowMillis = alertTime.getTimeInMillis();
         alertTime.set(Calendar.SECOND, 0);
+        alertTime.set(Calendar.MILLISECOND, 0);
         alertTime.set(Calendar.HOUR_OF_DAY, info.hour);
         alertTime.set(Calendar.MINUTE, info.minute);
 
@@ -68,7 +87,7 @@ public class FileAlertItem extends FileItem implements AlertItem {
                 int dayOfWeek = getDayOfWeek(alertTime);
 
                 if (alertDays.contains(dayOfWeek) && alertTime.getTimeInMillis() > nowMillis) {
-                    refreshState(alertTime.getTime());
+                    refreshState(alertTime);
                     return;
                 }
 
@@ -82,7 +101,7 @@ public class FileAlertItem extends FileItem implements AlertItem {
                     alertTime.set(Calendar.YEAR, info.year);
                     alertTime.set(Calendar.MONTH, info.month - 1);
                     alertTime.set(Calendar.DAY_OF_MONTH, info.day);
-                    refreshState(alertTime.getTime());
+                    refreshState(alertTime);
                     return;
                 } else {
                     int year = alertTime.get(Calendar.YEAR);
@@ -90,7 +109,7 @@ public class FileAlertItem extends FileItem implements AlertItem {
                         year++;
                     }
                     alertTime.set(Calendar.YEAR, year);
-                    refreshState(alertTime.getTime());
+                    refreshState(alertTime);
                     return;
                 }
             } else {
@@ -99,8 +118,19 @@ public class FileAlertItem extends FileItem implements AlertItem {
         }
     }
 
-    private void refreshState(Date date) {
-        nextDate = date;
+    private void refreshState(Calendar cal) {
+        String newTitle = String.format("%d:%d %d:%d:%d",
+                info.hour, info.minute,
+                cal.get(Calendar.DAY_OF_MONTH),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.YEAR));
+
+        if (StringUtils.isNotBlank(getMessage())) {
+            newTitle += " " + StringUtils.abbreviate(getMessage(), MESSAGE_TITLE_LENGTH);
+        }
+
+        this.title = newTitle;
+        this.nextDate = cal.getTime();
     }
 
     private static List<Integer> getAlertDays(int flags) {

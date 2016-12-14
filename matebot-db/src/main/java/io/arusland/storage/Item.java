@@ -9,7 +9,7 @@ import java.util.List;
  * <p>
  * Created by ruslan on 03.12.2016.
  */
-public interface Item {
+public interface Item<T extends Item> {
     User getUser();
 
     ItemType getType();
@@ -26,7 +26,7 @@ public interface Item {
 
     boolean isDirectory();
 
-    List<Item> listItems();
+    List<T> listItems();
 
     File tryGetFile();
 }

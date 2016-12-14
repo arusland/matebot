@@ -1,6 +1,7 @@
 package io.arusland.storage;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * <code>AlertItem</code> - special type of item.
@@ -19,7 +20,7 @@ import java.util.Date;
  * <p>
  * Created by ruslan on 10.12.2016.
  */
-public interface AlertItem extends Item {
+public interface AlertItem extends Item<AlertItem> {
     /**
      * Next alert time.
      */

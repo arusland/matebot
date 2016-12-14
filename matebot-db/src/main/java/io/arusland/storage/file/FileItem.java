@@ -16,17 +16,19 @@ import static java.util.stream.Collectors.toList;
  * <p>
  * Created by ruslan on 03.12.2016.
  */
-public class FileItem implements Item, Comparator<Item> {
+public class FileItem<T extends Item> implements Item<T>, Comparator<Item> {
     private final User user;
     private final ItemType type;
     private final File file;
     private final ItemPath path;
+    private final ItemFactory itemFactory;
 
-    public FileItem(User user, ItemType type, File file, ItemPath path) {
+    public FileItem(User user, ItemType type, File file, ItemPath path, ItemFactory itemFactory) {
         this.user = Validate.notNull(user, "user");
         this.type = Validate.notNull(type, "type");
         this.file = Validate.notNull(file, "file");
         this.path = Validate.notNull(path, "path");
+        this.itemFactory = Validate.notNull(itemFactory, "itemFactory");
     }
 
     public User getUser() {
@@ -62,16 +64,18 @@ public class FileItem implements Item, Comparator<Item> {
         return file.isDirectory();
     }
 
-    public List<Item> listItems() {
+    public List<T> listItems() {
         if (isDirectory()) {
             List<Item> result = Arrays.stream(file.listFiles(TypedFileFilter.get(type)))
-                    .map(f -> new FileItem(user, type, f,
+                    .map(f -> itemFactory.fromFile(type, f,
                             ItemPath.parse(path.getPath() + "/" + f.getName())))
+                    .filter(p -> p.isPresent())
+                    .map(p -> p.get())
                     .collect(toList());
 
             result.sort(this);
 
-            return result;
+            return (List<T>) result;
         }
 
         return Collections.emptyList();
@@ -99,6 +103,10 @@ public class FileItem implements Item, Comparator<Item> {
         } else {
             return o1.getName().compareTo(o2.getName());
         }
+    }
+
+    protected ItemFactory getItemFactory() {
+        return itemFactory;
     }
 
     @Override
