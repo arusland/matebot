@@ -2,7 +2,6 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
-import io.arusland.bots.utils.TimeUtils;
 import io.arusland.storage.AlertItem;
 import io.arusland.storage.Item;
 import io.arusland.storage.UserStorage;
@@ -125,7 +124,7 @@ public class CommonCommand extends BaseBotCommand {
 
             if (addedItem != null) {
                 if (addedItem instanceof AlertItem) {
-                    handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage);
+                    handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage, user);
                 } else {
                     // TODO: !!!
                 }
@@ -135,7 +134,7 @@ public class CommonCommand extends BaseBotCommand {
         }
     }
 
-    private void handleAlertItem(Long chatId, AlertItem addedItem, UserStorage storage) {
+    private void handleAlertItem(Long chatId, AlertItem addedItem, UserStorage storage, User user) {
         long diff = addedItem.nextTime().getTime() - System.currentTimeMillis();
 
         if (diff > 0) {
@@ -150,7 +149,7 @@ public class CommonCommand extends BaseBotCommand {
             sb.append(duration.toMinutes() + " min.");
 
             sendMessage(chatId, sb.toString());
-            getContext().rerunAlerts();
+            getContext().rerunAlerts(user, chatId);
 
             return;
         }

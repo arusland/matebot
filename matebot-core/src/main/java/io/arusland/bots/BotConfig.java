@@ -1,6 +1,9 @@
 package io.arusland.bots;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 import java.io.*;
 import java.util.Arrays;
@@ -13,6 +16,7 @@ import java.util.Properties;
  * Created by ruslan on 03.12.2016.
  */
 public class BotConfig {
+    private final Logger log = Logger.getLogger(getClass());
     private final static String CONFIG_PREFIX = "-config=";
     private final Properties prop;
     private final File configFile;
@@ -28,6 +32,20 @@ public class BotConfig {
 
     public String getMatebotToken() {
         return getProperty("matebot.token");
+    }
+
+    public long getUserChatId(int userId) {
+        String chatIdStr = getProperty("user" + userId + ".chatid", "");
+
+        if (StringUtils.isNoneBlank(chatIdStr)) {
+            return Long.parseLong(chatIdStr);
+        }
+
+        return 0;
+    }
+
+    public void setUserChatId(int userId, long chatId) {
+        prop.setProperty("user" + userId + ".chatid", String.valueOf(chatId));
     }
 
     /**
@@ -65,6 +83,31 @@ public class BotConfig {
                 "Configuration not found for key: " + key);
     }
 
+    private String getProperty(String key, String defValue) {
+        String val = prop.getProperty(key);
+
+        return StringUtils.defaultString(val, defValue);
+    }
+
+    public void save() {
+        OutputStream output = null;
+
+        try {
+            output = new FileOutputStream(configFile);
+            prop.store(output, null);
+        } catch (IOException e) {
+            log.error("Save failed", e);
+        } finally {
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public static BotConfig load(String fileName) {
         Properties prop = new Properties();
         File file = null;
@@ -92,5 +135,22 @@ public class BotConfig {
         }
 
         return BotConfig.load("application.properties");
+    }
+
+    /**
+     * Create instance of {@link BotConfig} in current user home directory.
+     *
+     */
+    public static BotConfig fromUserDir() {
+        Properties prop = new Properties();
+
+        File file = new File(System.getProperty("user.home"), ".matebot");
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+
+        file = new File(file, "config.properties");
+
+        return new BotConfig(prop, file);
     }
 }

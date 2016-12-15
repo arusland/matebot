@@ -7,6 +7,7 @@ import io.arusland.bots.utils.TimeManagement;
 import io.arusland.storage.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.log4j.Logger;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
@@ -26,7 +27,9 @@ import static java.util.stream.Collectors.toList;
  * Created by ruslan on 03.12.2016.
  */
 public class MateBot extends BaseCommandBot implements BotContext {
-    private final BotConfig config;
+    private final static Logger log = Logger.getLogger(MateBot.class);
+    private final BotConfig configInput;
+    private final BotConfig configOutput;
     private final Storage storage;
     private final Map<Integer, String> currentPath = new HashMap<>();
     private final List<ShortcutCommand> shortcutCommands = new ArrayList<>();
@@ -34,10 +37,11 @@ public class MateBot extends BaseCommandBot implements BotContext {
     private final TimeManagement timeManagement = new TimeManagement();
     private final Map<AlertItem, Date> alerts = Collections.synchronizedMap(new IdentityHashMap<>());
 
-    public MateBot(BotConfig config) {
+    public MateBot(BotConfig configInput) {
         super();
-        this.config = Validate.notNull(config, "config");
-        this.storage = StorageFactory.createStorage(config.getMatebotDbRoot(), Collections.emptyMap());
+        this.configInput = Validate.notNull(configInput, "configInput");
+        this.configOutput = BotConfig.fromUserDir();
+        this.storage = StorageFactory.createStorage(configInput.getMatebotDbRoot(), Collections.emptyMap());
         this.commonCommand = new CommonCommand(this);
         register(new ListCurrentDirCommand(this));
         register(new StartCommand(this));
@@ -45,8 +49,8 @@ public class MateBot extends BaseCommandBot implements BotContext {
         registerAll(ItemCommand.listAll(this));
 
         log.info("MateBot started v0.1");
-        log.info("Config file - " + config.getConfigFile());
-        log.info("Db directory - " + config.getMatebotDbRoot());
+        log.info("Config file - " + configInput.getConfigFile());
+        log.info("Db directory - " + configInput.getMatebotDbRoot());
     }
 
     public static void main(String[] args) {
@@ -54,23 +58,23 @@ public class MateBot extends BaseCommandBot implements BotContext {
         try {
             BotConfig config = BotConfig.fromCommandArgs(args);
             telegramBotsApi.registerBot(new MateBot(config));
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("App starting failed", e);
         }
     }
 
     public String getBotUsername() {
-        return config.getMatebotName();
+        return configInput.getMatebotName();
     }
 
     @Override
     public String getBotToken() {
-        return config.getMatebotToken();
+        return configInput.getMatebotToken();
     }
 
     @Override
     protected boolean filter(Message message) {
-        int userId = config.getSingleUserId();
+        int userId = configInput.getSingleUserId();
 
         if (userId == 0) {
             return false;
