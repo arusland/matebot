@@ -163,6 +163,25 @@ public class AlertInfoTest {
     }
 
     @Test
+    public void testFullWithoutYearAndMonthWithMessageLikeDay() {
+        AlertInfo info = AlertInfo.parse("14:33 7d");
+        Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
+
+        assertTrue(info.valid);
+        assertEquals(14, info.hour);
+        assertEquals(33, info.minute);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("7d", info.message);
+        assertEquals(String.format("14:33 %d:%d:%d 7d", day, month, year), info.content);
+    }
+
+    @Test
     public void testShortWithMessage() {
         AlertInfo info = AlertInfo.parse("23:59 Alert message!");
         Calendar cal = calcNextDayAfterTime(info);

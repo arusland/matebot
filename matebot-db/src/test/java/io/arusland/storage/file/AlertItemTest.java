@@ -97,12 +97,21 @@ public class AlertItemTest {
             UserStorage storage = getOrCreateStorage(user);
 
             Item alertsRoot = storage.getItemByPath(ItemType.ALERTS);
-            List<AlertItem> items = alertsRoot.listItems();
+            List<AlertItem> alerts = alertsRoot.listItems();
 
-            assertEquals(2, items.size());
-            assertTrue(items.get(0) instanceof AlertItem);
-            assertTrue(items.get(1) instanceof AlertItem);
-            // TODO: asserts!
+            assertEquals(2, alerts.size());
+            assertTrue(alerts.get(0) instanceof AlertItem);
+            assertTrue(alerts.get(1) instanceof AlertItem);
+
+            for (AlertItem alert1 : alerts) {
+                assertEquals(ItemType.ALERTS, alert1.getType());
+                assertNoneBlank(alert1.getName());
+                assertTrue(alert1.getName().endsWith(".alert"));
+                assertEquals("/alerts/" + alert1.getName(), alert1.getFullPath());
+            }
+
+            assertEquals("Go to bed!", alerts.get(0).getMessage());
+            assertEquals("Ты можешь еще поспать!", alerts.get(1).getMessage());
         }
     }
 

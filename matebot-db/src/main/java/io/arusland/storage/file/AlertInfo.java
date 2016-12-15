@@ -208,4 +208,19 @@ public class AlertInfo {
 
         return 0;
     }
+
+    @Override
+    public String toString() {
+        return "AlertInfo{" +
+                "hour=" + hour +
+                ", minute=" + minute +
+                ", year=" + year +
+                ", month=" + month +
+                ", day=" + day +
+                ", weekDays=" + weekDays +
+                ", message='" + message + '\'' +
+                ", content='" + content + '\'' +
+                ", valid=" + valid +
+                '}';
+    }
 }
