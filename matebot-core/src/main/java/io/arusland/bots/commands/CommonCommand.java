@@ -150,31 +150,12 @@ public class CommonCommand extends BaseBotCommand {
             sb.append(duration.toMinutes() + " min.");
 
             sendMessage(chatId, sb.toString());
-            enqueueAlert(addedItem, chatId);
+            getContext().rerunAlerts();
 
             return;
         }
 
         storage.deleteItem(addedItem);
-    }
-
-    private void enqueueAlert(AlertItem alert, Long chatId) {
-        log.info("Alert added to queue: " + alert);
-
-        getContext().enqueueAlert(alert, () -> {
-            log.info("Alert fired: " + alert);
-
-            if (StringUtils.isNotBlank(alert.getMessage())) {
-                sendMessage(chatId, alert.getMessage());
-            } else {
-                sendMessage(chatId, "Alert!!!");
-            }
-
-            if (alert.isActive()) {
-                // if alert is active enqueue it again
-                enqueueAlert(alert, chatId);
-            }
-        });
     }
 
     private void handleShortcutCommand(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage) {

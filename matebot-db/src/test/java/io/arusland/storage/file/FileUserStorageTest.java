@@ -311,6 +311,36 @@ public class FileUserStorageTest {
         assertTrue(item.tryGetFile().exists());
     }
 
+    @Test
+    public void deletingFileTest() {
+        User user = new User(122342342L, "Foo");
+        File targetFile = null;
+
+        {
+            UserStorage storage = getOrCreateStorage(user);
+            File file1 = TestUtils.createTempFile(33);
+
+            Item item = storage.addItem("newname5.mp3", file1);
+            file1.delete();
+
+            assertNotNull(item);
+            assertEquals("/audios/newname5.mp3", item.getFullPath());
+            targetFile = item.tryGetFile();
+            assertNotNull(targetFile);
+            assertTrue(targetFile.exists());
+        }
+
+        {
+            UserStorage storage = getOrCreateStorage(user);
+            Item item = storage.getItemByPath("/audios/newname5.mp3");
+            assertNotNull(item);
+            assertEquals("/audios/newname5.mp3", item.getFullPath());
+            assertTrue(targetFile.exists());
+            storage.deleteItem(item);
+            assertFalse(targetFile.exists());
+        }
+    }
+
     private UserStorage getOrCreateStorage(User user) {
         return (FileUserStorage) fileStorage.getOrCreate(user);
     }

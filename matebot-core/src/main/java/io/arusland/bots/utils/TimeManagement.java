@@ -36,7 +36,7 @@ public class TimeManagement implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         times.clear();
         timer.cancel();
     }

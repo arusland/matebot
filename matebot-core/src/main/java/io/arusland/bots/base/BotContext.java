@@ -62,7 +62,5 @@ public interface BotContext {
      */
     void clearShortcutCommands(User user);
 
-    void enqueueAlert(AlertItem addedItem, Runnable consumer);
-
-    void dequeueAlert(AlertItem alert);
+    void rerunAlerts(User user, long chatId);
 }

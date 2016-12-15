@@ -4,10 +4,8 @@ import io.arusland.bots.base.BaseCommandBot;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.commands.*;
 import io.arusland.bots.utils.TimeManagement;
-import io.arusland.storage.AlertItem;
-import io.arusland.storage.Storage;
-import io.arusland.storage.StorageFactory;
-import io.arusland.storage.UserStorage;
+import io.arusland.storage.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.GetFile;
@@ -19,6 +17,8 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import java.io.File;
 import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * MateBot - Telegram bot that manages objects like: images, audios, videos, notes and alerts.
@@ -101,24 +101,60 @@ public class MateBot extends BaseCommandBot implements BotContext {
         shortcutCommands.removeIf(p -> p.getUserId().equals(user.getId()));
     }
 
+
+
     @Override
-    public void enqueueAlert(AlertItem alert, Runnable handler) {
+    public void rerunAlerts(User user, long chatId) {
+        List<AlertItem> alertsToRemove = new ArrayList<>(alerts.keySet());
+        alertsToRemove.forEach(a -> dequeueAlert(a));
+
+        UserStorage storage = getUserStorage(user);
+        List<AlertItem> alerts = storage.getItemByPath(ItemType.ALERTS)
+                .listItems();
+        List<AlertItem> activeAlerts = alerts.stream()
+                .filter(p -> p.isActive())
+                .collect(toList());
+
+        if (!activeAlerts.isEmpty()) {
+            activeAlerts.forEach(a -> enqueueAlert(a, chatId));
+        }
+    }
+
+    private void enqueueAlert(AlertItem alert, long chatId) {
+        enqueueAlert(alert, () -> {
+            if (StringUtils.isNotBlank(alert.getMessage())) {
+                sendMessage(chatId, alert.getMessage());
+            } else {
+                sendMessage(chatId, "Alert!!!");
+            }
+
+            if (alert.isActive()) {
+                // if alert is active enqueue it again
+                enqueueAlert(alert, chatId);
+            }
+        });
+    }
+
+    private void enqueueAlert(AlertItem alert, Runnable handler) {
         Date time = alert.nextTime();
 
         if (time != null) {
+            log.info("Alert added to queue: " + alert);
+
             alerts.put(alert, time);
             timeManagement.enqueue(time, () -> {
+                log.info("Alert fired: " + alert);
                 alerts.remove(time);
                 handler.run();
             });
         }
     }
 
-    @Override
-    public void dequeueAlert(AlertItem alert) {
+    private void dequeueAlert(AlertItem alert) {
         Date time = alerts.get(alert);
 
         if (time != null) {
+            log.info("Remove alert from queue: " + alert);
             alerts.remove(alert);
             timeManagement.dequeue(time);
         }
