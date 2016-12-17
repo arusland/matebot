@@ -32,11 +32,6 @@ public interface AlertItem extends Item<AlertItem> {
     String getMessage();
 
     /**
-     * Title of the alert.
-     */
-    String getTitle();
-
-    /**
      * Alert is not active.
      */
     boolean isActive();

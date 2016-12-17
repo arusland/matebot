@@ -26,6 +26,12 @@ public interface Item<T extends Item> {
     String getName();
 
     /**
+     * Title of the item. If <code>title</code> is not empty
+     * it should be shown instead of <code>name</code>.
+     */
+    String getTitle();
+
+    /**
      * Full path of the item.
      */
     String getFullPath();

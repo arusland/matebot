@@ -43,6 +43,11 @@ public class FileItem<T extends Item> implements Item<T>, Comparator<Item> {
         return file.getName();
     }
 
+    @Override
+    public String getTitle() {
+        return "";
+    }
+
     public String getFullPath() {
         return path.getPath();
     }

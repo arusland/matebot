@@ -87,6 +87,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         boolean skipThisMessage = message.getFrom().getId() != userId;
 
         if (!skipThisMessage) {
+            // save user's private chat's id
             Integer messageUserId = message.getFrom().getId();
             Long chatId = message.getChatId();
 

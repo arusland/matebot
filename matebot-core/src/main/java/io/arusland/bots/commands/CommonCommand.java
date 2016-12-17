@@ -2,6 +2,7 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
+import io.arusland.bots.utils.TimeUtils;
 import io.arusland.storage.AlertItem;
 import io.arusland.storage.Item;
 import io.arusland.storage.UserStorage;
@@ -17,7 +18,6 @@ import org.telegram.telegrambots.bots.commands.BotCommand;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.Date;
 
 /**
@@ -27,7 +27,7 @@ import java.util.Date;
  */
 public class CommonCommand extends BaseBotCommand {
     private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
-    private final static DateFormat ALERT_FORMAT = new SimpleDateFormat("HH:mm: dd.MM.yyyy");
+    private final static DateFormat ALERT_FORMAT = new SimpleDateFormat("HH:mm dd.MM.yyyy");
 
     public CommonCommand(BotContext context) {
         super("common", "This command not visible in menu!", context);
@@ -138,15 +138,15 @@ public class CommonCommand extends BaseBotCommand {
         long diff = addedItem.nextTime().getTime() - System.currentTimeMillis();
 
         if (diff > 0) {
-            Duration duration = Duration.ofMillis(diff);
+            Date nextTime = addedItem.nextTime();
 
             StringBuilder sb = new StringBuilder();
-            sb.append("Alert added!\n");
+            sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
-            sb.append(ALERT_FORMAT.format(addedItem.nextTime()));
+            sb.append(ALERT_FORMAT.format(nextTime));
             sb.append("\n");
-            sb.append("Notification in ");
-            sb.append(duration.toMinutes() + " min.");
+            sb.append("\uD83D\uDD14 Notification in ");
+            sb.append(TimeUtils.friendlyTimespan(nextTime));
 
             sendMessage(chatId, sb.toString());
             getContext().rerunAlerts();
@@ -166,41 +166,21 @@ public class CommonCommand extends BaseBotCommand {
             } else if ("dl".equals(cmd.getCommand())) {
                 Item item = storage.getItemByPath(cmd.getArguments().get(0));
 
-                if (item != null && !item.isDirectory()) {
-                    java.io.File file = item.tryGetFile();
-
-                    if (file != null && !file.isDirectory()) {
-                        getContext().sendFile(chatId, file);
+                if (item != null) {
+                    if (item instanceof AlertItem) {
+                        handleDownloadingAlertItem(chatId, (AlertItem) item);
+                    } else {
+                        handleDownloadingCommonItem(chatId, item);
                     }
-                } else {
-                    sendMessage(chatId, "Cannot find item: " + cmd.getArguments());
                 }
             } else if ("rm".equals(cmd.getCommand())) {
                 Item item = storage.getItemByPath(cmd.getArguments().get(0));
 
-                if (item != null && !item.isDirectory()) {
-                    if (cmd.getArguments().size() >= 2 && cmd.getArguments().get(1).equals("1")) {
-                        storage.deleteItem(item);
-                        sendMessage(chatId, "File '" + item.getFullPath() + "' removed");
-                        getContext().clearShortcutCommands(user);
-                        getContext().listCurrentDir(update);
+                if (item != null) {
+                    if (item instanceof AlertItem) {
+                        handleRemovingAlertItem(cmd, user, chatId, update, storage, (AlertItem) item);
                     } else {
-                        String removeFile = "/remove";
-                        String cancelOperation = "/cancel";
-
-                        getContext().clearShortcutCommands(user);
-                        getContext().addShortcutCommand(user, removeFile, "rm", item.getFullPath(), "1");
-                        getContext().addShortcutCommand(user, cancelOperation, "cd", item.getParentPath());
-
-                        StringBuilder sb = new StringBuilder("Are you sure to remove file '");
-                        sb.append(item.getFullPath());
-                        sb.append("'?\n❌");
-                        sb.append(removeFile);
-                        sb.append(" ✅");
-                        sb.append(cancelOperation);
-                        sb.append("\n");
-
-                        sendMessage(chatId, sb.toString());
+                        handleRemovingCommonItem(cmd, user, chatId, update, storage, item);
                     }
                 }
             } else if ("mv".equals(cmd.getCommand())) {
@@ -208,6 +188,90 @@ public class CommonCommand extends BaseBotCommand {
                 sendMessage(chatId, "TODO: Moving file: " + cmd.getArguments());
             } else {
                 log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
+            }
+        }
+    }
+
+    private void handleDownloadingAlertItem(Long chatId, AlertItem alert) {
+        Date nextTime = alert.nextTime();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("✅ Alert");
+        if (StringUtils.isNoneBlank(alert.getMessage())) {
+            sb.append(": ");
+            sb.append(alert.getMessage());
+        }
+        sb.append("\n");
+        sb.append("Notification time: ");
+        sb.append(ALERT_FORMAT.format(nextTime));
+        sb.append("\n");
+        sb.append("\uD83D\uDD14 Notification in ");
+        sb.append(TimeUtils.friendlyTimespan(nextTime));
+        sendMessage(chatId, sb.toString());
+    }
+
+    private void handleDownloadingCommonItem(Long chatId, Item item) {
+        if (!item.isDirectory()) {
+            java.io.File file = item.tryGetFile();
+
+            if (file != null && !file.isDirectory()) {
+                getContext().sendFile(chatId, file);
+            }
+        }
+    }
+
+    private void handleRemovingAlertItem(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage, AlertItem alert) {
+        if (!alert.isDirectory()) {
+            if (cmd.getArguments().size() >= 2 && cmd.getArguments().get(1).equals("1")) {
+                storage.deleteItem(alert);
+                sendMessage(chatId, "Alert was removed");
+                getContext().clearShortcutCommands(user);
+                getContext().listCurrentDir(update);
+            } else {
+                String removeFile = "/remove";
+                String cancelOperation = "/cancel";
+
+                getContext().clearShortcutCommands(user);
+                getContext().addShortcutCommand(user, removeFile, "rm", alert.getFullPath(), "1");
+                getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
+
+                StringBuilder sb = new StringBuilder("Are you sure to remove alert '");
+                sb.append(alert.getTitle());
+                sb.append("'?\n❌");
+                sb.append(removeFile);
+                sb.append(" ✅");
+                sb.append(cancelOperation);
+                sb.append("\n");
+
+                sendMessage(chatId, sb.toString());
+            }
+        }
+    }
+
+    private void handleRemovingCommonItem(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage, Item item) {
+        if (!item.isDirectory()) {
+            if (cmd.getArguments().size() >= 2 && cmd.getArguments().get(1).equals("1")) {
+                storage.deleteItem(item);
+                sendMessage(chatId, "item '" + item.getFullPath() + "' removed");
+                getContext().clearShortcutCommands(user);
+                getContext().listCurrentDir(update);
+            } else {
+                String removeFile = "/remove";
+                String cancelOperation = "/cancel";
+
+                getContext().clearShortcutCommands(user);
+                getContext().addShortcutCommand(user, removeFile, "rm", item.getFullPath(), "1");
+                getContext().addShortcutCommand(user, cancelOperation, "cd", item.getParentPath());
+
+                StringBuilder sb = new StringBuilder("Are you sure to remove item '");
+                sb.append(item.getFullPath());
+                sb.append("'?\n❌");
+                sb.append(removeFile);
+                sb.append(" ✅");
+                sb.append(cancelOperation);
+                sb.append("\n");
+
+                sendMessage(chatId, sb.toString());
             }
         }
     }

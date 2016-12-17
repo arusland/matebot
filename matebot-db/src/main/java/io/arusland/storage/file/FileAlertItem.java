@@ -127,7 +127,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     }
 
     private void refreshState(Calendar cal) {
-        String newTitle = String.format("%d:%d %d:%d:%d",
+        String newTitle = String.format("%02d:%02d %02d:%02d:%d",
                 info.hour, info.minute,
                 cal.get(Calendar.DAY_OF_MONTH),
                 cal.get(Calendar.MONTH) + 1,

@@ -2,6 +2,7 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
+import io.arusland.storage.AlertItem;
 import io.arusland.storage.Item;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FileUtils;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ListCurrentDirCommand extends BaseBotCommand {
     private static String EMOJI_DIR = "\uD83D\uDCC1";
     private static String EMOJI_FILE = "\uD83D\uDDC4";
+
     public ListCurrentDirCommand(BotContext context) {
         super("ls", "List items of current directory!", context);
         setOrder(30);
@@ -61,37 +63,72 @@ public class ListCurrentDirCommand extends BaseBotCommand {
 
                     for (int i = 0; i < items.size(); i++) {
                         Item item = items.get(i);
-                        String changeDirShortcut = "/" + (i + 1);
-                        String removeFileShortcut = "/del" + (i + 1);
-                        sb.append(changeDirShortcut);
-                        sb.append(" ");
 
-                        if (item.isDirectory()) {
-                            sb.append(EMOJI_DIR);
+                        if (item instanceof AlertItem) {
+                            renderAlertItem(user, sb, i, (AlertItem) item);
                         } else {
-                            sb.append(EMOJI_FILE);
-                        }
-                        sb.append(item.getName());
-                        if (!item.isDirectory()) {
-                            sb.append(" - ");
-                            sb.append(FileUtils.byteCountToDisplaySize(item.getSize()));
-                            sb.append(" ");
-                            sb.append(removeFileShortcut);
-                        }
-
-                        sb.append("\n");
-
-                        if (item.isDirectory()) {
-                            getContext().addShortcutCommand(user, changeDirShortcut, "cd", item.getFullPath());
-                        } else {
-                            getContext().addShortcutCommand(user, changeDirShortcut, "dl", item.getFullPath());
-                            getContext().addShortcutCommand(user, removeFileShortcut, "rm", item.getFullPath());
+                            renderCommonItem(user, sb, i, item);
                         }
                     }
                 }
 
                 sendMessage(msg.getChat().getId(), sb.toString());
             }
+        }
+    }
+
+    private void renderAlertItem(User user, StringBuilder sb, int index, AlertItem item) {
+        String changeDirShortcut = "/" + (index + 1);
+        String removeFileShortcut = "/del" + (index + 1);
+        sb.append(changeDirShortcut);
+        sb.append(" ");
+
+        if (item.isDirectory()) {
+            sb.append(EMOJI_DIR);
+        } else {
+            if (item.isActive()) {
+                sb.append("\uD83D\uDD14");
+            } else {
+                sb.append("❌");
+            }
+        }
+        sb.append(StringUtils.defaultString(item.getTitle(), item.getName()));
+        sb.append("\n");
+
+        if (item.isDirectory()) {
+            getContext().addShortcutCommand(user, changeDirShortcut, "cd", item.getFullPath());
+        } else {
+            getContext().addShortcutCommand(user, changeDirShortcut, "dl", item.getFullPath());
+            getContext().addShortcutCommand(user, removeFileShortcut, "rm", item.getFullPath());
+        }
+    }
+
+    public void renderCommonItem(User user, StringBuilder sb, int index, Item item) {
+        String changeDirShortcut = "/" + (index + 1);
+        String removeFileShortcut = "/del" + (index + 1);
+        sb.append(changeDirShortcut);
+        sb.append(" ");
+
+        if (item.isDirectory()) {
+            sb.append(EMOJI_DIR);
+        } else {
+            sb.append(EMOJI_FILE);
+        }
+        sb.append(StringUtils.isNoneBlank(item.getTitle()) ? item.getTitle() : item.getName());
+        if (!item.isDirectory()) {
+            sb.append(" - ");
+            sb.append(FileUtils.byteCountToDisplaySize(item.getSize()));
+            sb.append(" ");
+            sb.append(removeFileShortcut);
+        }
+
+        sb.append("\n");
+
+        if (item.isDirectory()) {
+            getContext().addShortcutCommand(user, changeDirShortcut, "cd", item.getFullPath());
+        } else {
+            getContext().addShortcutCommand(user, changeDirShortcut, "dl", item.getFullPath());
+            getContext().addShortcutCommand(user, removeFileShortcut, "rm", item.getFullPath());
         }
     }
 }

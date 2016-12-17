@@ -42,8 +42,8 @@ public class AlertItemTest {
         User user = new User(1123581321L, "Foo");
         UserStorage storage = getOrCreateStorage(user);
 
-        Item item = storage.addItem("/", "12:43");
-        Calendar alertTime = TestUtils.calcNextDayAfterTime(12, 43);
+        Item item = storage.addItem("/", "2:43");
+        Calendar alertTime = TestUtils.calcNextDayAfterTime(2, 43);
 
         assertNotNull(item);
         assertTrue(item instanceof AlertItem);
@@ -54,7 +54,7 @@ public class AlertItemTest {
         assertEquals("/alerts/" + alert.getName(), alert.getFullPath());
         assertEquals("", alert.getMessage());
         assertEquals(alertTime.getTime(), alert.nextTime());
-        assertEquals(String.format("12:43 %d:%d:2016", alertTime.get(Calendar.DAY_OF_MONTH),
+        assertEquals(String.format("02:43 %02d:%02d:2016", alertTime.get(Calendar.DAY_OF_MONTH),
                 alertTime.get(Calendar.MONTH) + 1), alert.getTitle());
     }
 
@@ -75,7 +75,7 @@ public class AlertItemTest {
         assertEquals("/alerts/" + alert.getName(), alert.getFullPath());
         assertEquals("Go home, stop coding!", alert.getMessage());
         assertEquals(alertTime.getTime(), alert.nextTime());
-        assertEquals(String.format("23:58 %d:%d:2016 Go home...", alertTime.get(Calendar.DAY_OF_MONTH),
+        assertEquals(String.format("23:58 %02d:%02d:2016 Go home...", alertTime.get(Calendar.DAY_OF_MONTH),
                 alertTime.get(Calendar.MONTH) + 1), alert.getTitle());
     }
 
