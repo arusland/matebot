@@ -47,6 +47,8 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
 
     @Override
     public boolean isActive() {
+        calcNextState();
+
         return nextDate != null && System.currentTimeMillis() < nextDate.getTime();
     }
 
@@ -73,6 +75,12 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     }
 
     private void calcNextState() {
+        if (nextDate != null) {
+            if (nextDate.getTime() > System.currentTimeMillis()) {
+                return;
+            }
+        }
+
         Calendar alertTime = Calendar.getInstance();
         long nowMillis = alertTime.getTimeInMillis();
         alertTime.set(Calendar.SECOND, 0);

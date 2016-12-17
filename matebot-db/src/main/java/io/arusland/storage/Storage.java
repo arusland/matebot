@@ -1,5 +1,7 @@
 package io.arusland.storage;
 
+import java.util.List;
+
 /**
  * Heterogeneous storage.
  * <p>
@@ -7,4 +9,6 @@ package io.arusland.storage;
  */
 public interface Storage {
     UserStorage getOrCreate(User user);
+
+    List<User> listUsers();
 }

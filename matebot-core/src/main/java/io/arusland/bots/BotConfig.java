@@ -34,7 +34,7 @@ public class BotConfig {
         return getProperty("matebot.token");
     }
 
-    public long getUserChatId(int userId) {
+    public long getUserChatId(long userId) {
         String chatIdStr = getProperty("user" + userId + ".chatid", "");
 
         if (StringUtils.isNoneBlank(chatIdStr)) {

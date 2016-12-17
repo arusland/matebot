@@ -3,8 +3,12 @@ package io.arusland.bots;
 import io.arusland.bots.base.BaseCommandBot;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.commands.*;
+import io.arusland.bots.utils.AlertsRunner;
 import io.arusland.bots.utils.TimeManagement;
-import io.arusland.storage.*;
+import io.arusland.storage.AlertItem;
+import io.arusland.storage.Storage;
+import io.arusland.storage.StorageFactory;
+import io.arusland.storage.UserStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
@@ -18,8 +22,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import java.io.File;
 import java.util.*;
-
-import static java.util.stream.Collectors.toList;
+import java.util.function.BiConsumer;
 
 /**
  * MateBot - Telegram bot that manages objects like: images, audios, videos, notes and alerts.
@@ -34,8 +37,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
     private final Map<Integer, String> currentPath = new HashMap<>();
     private final List<ShortcutCommand> shortcutCommands = new ArrayList<>();
     private final CommonCommand commonCommand;
-    private final TimeManagement timeManagement = new TimeManagement();
-    private final Map<AlertItem, Date> alerts = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final AlertsRunner alertsRunner;
 
     public MateBot(BotConfig configInput) {
         super();
@@ -43,6 +45,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         this.configOutput = BotConfig.fromUserDir();
         this.storage = StorageFactory.createStorage(configInput.getMatebotDbRoot(), Collections.emptyMap());
         this.commonCommand = new CommonCommand(this);
+        this.alertsRunner = new AlertsRunner(this.storage, new TimeManagement(), new AlertsRunnerHandler());
         register(new ListCurrentDirCommand(this));
         register(new StartCommand(this));
         register(new UpDirCommand(this));
@@ -51,6 +54,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         log.info("MateBot started v0.1");
         log.info("Config file - " + configInput.getConfigFile());
         log.info("Db directory - " + configInput.getMatebotDbRoot());
+        rerunAlerts();
     }
 
     public static void main(String[] args) {
@@ -80,7 +84,19 @@ public class MateBot extends BaseCommandBot implements BotContext {
             return false;
         }
 
-        return message.getFrom().getId() != userId;
+        boolean skipThisMessage = message.getFrom().getId() != userId;
+
+        if (!skipThisMessage) {
+            Integer messageUserId = message.getFrom().getId();
+            Long chatId = message.getChatId();
+
+            if (messageUserId != null && chatId != null && chatId > 0 && message.getChat().isUserChat()) {
+                configOutput.setUserChatId(messageUserId, chatId);
+                configOutput.save();
+            }
+        }
+
+        return skipThisMessage;
     }
 
     @Override
@@ -105,63 +121,9 @@ public class MateBot extends BaseCommandBot implements BotContext {
         shortcutCommands.removeIf(p -> p.getUserId().equals(user.getId()));
     }
 
-
-
     @Override
-    public void rerunAlerts(User user, long chatId) {
-        List<AlertItem> alertsToRemove = new ArrayList<>(alerts.keySet());
-        alertsToRemove.forEach(a -> dequeueAlert(a));
-
-        UserStorage storage = getUserStorage(user);
-        List<AlertItem> alerts = storage.getItemByPath(ItemType.ALERTS)
-                .listItems();
-        List<AlertItem> activeAlerts = alerts.stream()
-                .filter(p -> p.isActive())
-                .collect(toList());
-
-        if (!activeAlerts.isEmpty()) {
-            activeAlerts.forEach(a -> enqueueAlert(a, chatId));
-        }
-    }
-
-    private void enqueueAlert(AlertItem alert, long chatId) {
-        enqueueAlert(alert, () -> {
-            if (StringUtils.isNotBlank(alert.getMessage())) {
-                sendMessage(chatId, alert.getMessage());
-            } else {
-                sendMessage(chatId, "Alert!!!");
-            }
-
-            if (alert.isActive()) {
-                // if alert is active enqueue it again
-                enqueueAlert(alert, chatId);
-            }
-        });
-    }
-
-    private void enqueueAlert(AlertItem alert, Runnable handler) {
-        Date time = alert.nextTime();
-
-        if (time != null) {
-            log.info("Alert added to queue: " + alert);
-
-            alerts.put(alert, time);
-            timeManagement.enqueue(time, () -> {
-                log.info("Alert fired: " + alert);
-                alerts.remove(time);
-                handler.run();
-            });
-        }
-    }
-
-    private void dequeueAlert(AlertItem alert) {
-        Date time = alerts.get(alert);
-
-        if (time != null) {
-            log.info("Remove alert from queue: " + alert);
-            alerts.remove(alert);
-            timeManagement.dequeue(time);
-        }
+    public void rerunAlerts() {
+        alertsRunner.rerunAlerts();
     }
 
     @Override
@@ -238,6 +200,21 @@ public class MateBot extends BaseCommandBot implements BotContext {
             return downloadFile(file);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private class AlertsRunnerHandler implements BiConsumer<AlertItem, Long> {
+        @Override
+        public void accept(AlertItem alertItem, Long userId) {
+            long chatId = configOutput.getUserChatId(userId);
+
+            if (chatId > 0) {
+                if (StringUtils.isNoneBlank(alertItem.getMessage())) {
+                    sendMessage(chatId, "ALERT: " + alertItem.getMessage());
+                } else {
+                    sendMessage(chatId, "ALERT!!!");
+                }
+            }
         }
     }
 }

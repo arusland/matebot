@@ -39,16 +39,17 @@ public interface BotContext {
     /**
      * Adds shortcut for command with arguments for specified user.
      *
-     * @param user User.
+     * @param user     User.
      * @param shortcut Shortcut for command, e.g. <code>/ls</code>.
-     * @param cmd Command.
-     * @param args Command's arguments. Could be empty.
+     * @param cmd      Command.
+     * @param args     Command's arguments. Could be empty.
      */
     void addShortcutCommand(User user, String shortcut, String cmd, String... args);
 
     /**
      * Gets command with arguments.
-     * @param user User.
+     *
+     * @param user     User.
      * @param shortcut Shortcut for command.
      * @return Shortcut command.
      */
@@ -56,9 +57,13 @@ public interface BotContext {
 
     /**
      * Clear shortcut commands.
+     *
      * @param user User.
      */
     void clearShortcutCommands(User user);
 
-    void rerunAlerts(User user, long chatId);
+    /**
+     * Stops current alerts and run existing alerts.
+     */
+    void rerunAlerts();
 }

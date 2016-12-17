@@ -149,7 +149,7 @@ public class CommonCommand extends BaseBotCommand {
             sb.append(duration.toMinutes() + " min.");
 
             sendMessage(chatId, sb.toString());
-            getContext().rerunAlerts(user, chatId);
+            getContext().rerunAlerts();
 
             return;
         }
