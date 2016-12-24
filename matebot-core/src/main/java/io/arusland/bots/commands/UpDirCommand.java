@@ -26,7 +26,6 @@ public class UpDirCommand extends BaseBotCommand {
     public void execute(AbsSender absSender, Update update, String[] arguments) {
         User user = update.getMessage().getFrom();
         UserStorage storage = getContext().getUserStorage(user);
-        Message msg = update.getMessage();
         String currentPath = getContext().getCurrentPath(user);
 
         if (StringUtils.isBlank(currentPath)) {

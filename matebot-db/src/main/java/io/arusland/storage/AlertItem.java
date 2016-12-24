@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * <code>AlertItem</code> - special type of item.
+ * <code>AlertItem</code> - special type of {@link Item}.
  * <p>
  * Store information about alert time and text message.
  * <p>

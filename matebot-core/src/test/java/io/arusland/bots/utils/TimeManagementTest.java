@@ -2,7 +2,10 @@ package io.arusland.bots.utils;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;

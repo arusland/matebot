@@ -5,7 +5,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import sun.util.resources.cldr.ebu.CalendarData_ebu_KE;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,9 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static io.arusland.storage.TestUtils.assertNoneBlank;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.*;
 
 /**
  * Created by ruslan on 14.12.2016.
@@ -47,7 +44,7 @@ public class AlertItemTest {
 
         assertNotNull(item);
         assertTrue(item instanceof AlertItem);
-        AlertItem alert = (AlertItem)item;
+        AlertItem alert = (AlertItem) item;
         assertEquals(ItemType.ALERTS, alert.getType());
         assertNoneBlank(alert.getName());
         assertTrue(alert.getName().endsWith(".alert"));
@@ -68,7 +65,7 @@ public class AlertItemTest {
 
         assertNotNull(item);
         assertTrue(item instanceof AlertItem);
-        AlertItem alert = (AlertItem)item;
+        AlertItem alert = (AlertItem) item;
         assertEquals(ItemType.ALERTS, alert.getType());
         assertNoneBlank(alert.getName());
         assertTrue(alert.getName().endsWith(".alert"));
@@ -100,8 +97,6 @@ public class AlertItemTest {
             List<AlertItem> alerts = alertsRoot.listItems();
 
             assertEquals(2, alerts.size());
-            assertTrue(alerts.get(0) instanceof AlertItem);
-            assertTrue(alerts.get(1) instanceof AlertItem);
 
             for (AlertItem alert1 : alerts) {
                 assertEquals(ItemType.ALERTS, alert1.getType());

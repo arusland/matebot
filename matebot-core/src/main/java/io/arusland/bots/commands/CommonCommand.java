@@ -5,6 +5,7 @@ import io.arusland.bots.base.BotContext;
 import io.arusland.bots.utils.TimeUtils;
 import io.arusland.storage.AlertItem;
 import io.arusland.storage.Item;
+import io.arusland.storage.NoteItem;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +28,7 @@ import java.util.Date;
  */
 public class CommonCommand extends BaseBotCommand {
     private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
-    private final static DateFormat ALERT_FORMAT = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+    private final static DateFormat DATETIME_FORMAT = new SimpleDateFormat("HH:mm dd.MM.yyyy");
 
     public CommonCommand(BotContext context) {
         super("common", "This command not visible in menu!", context);
@@ -125,6 +126,8 @@ public class CommonCommand extends BaseBotCommand {
             if (addedItem != null) {
                 if (addedItem instanceof AlertItem) {
                     handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage, user);
+                } else if (addedItem instanceof NoteItem) {
+                    handleNoteItem(message.getChatId(), (NoteItem) addedItem);
                 } else {
                     // TODO: !!!
                 }
@@ -132,6 +135,14 @@ public class CommonCommand extends BaseBotCommand {
                 sendMessage(message.getChatId(), "⚠ invalid input");
             }
         }
+    }
+
+    private void handleNoteItem(Long chatId, NoteItem note) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("✅ Note added!\n");
+        sb.append("Title: " + note.getTitle());
+
+        sendMessage(chatId, sb.toString());
     }
 
     private void handleAlertItem(Long chatId, AlertItem addedItem, UserStorage storage, User user) {
@@ -143,7 +154,7 @@ public class CommonCommand extends BaseBotCommand {
             StringBuilder sb = new StringBuilder();
             sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
-            sb.append(ALERT_FORMAT.format(nextTime));
+            sb.append(DATETIME_FORMAT.format(nextTime));
             sb.append("\n");
             sb.append("\uD83D\uDD14 Notification in ");
             sb.append(TimeUtils.friendlyTimespan(nextTime));
@@ -169,6 +180,8 @@ public class CommonCommand extends BaseBotCommand {
                 if (item != null) {
                     if (item instanceof AlertItem) {
                         handleDownloadingAlertItem(chatId, (AlertItem) item);
+                    } else if (item instanceof NoteItem) {
+                        handleDownloadingNoteItem(chatId, (NoteItem) item);
                     } else {
                         handleDownloadingCommonItem(chatId, item);
                     }
@@ -179,17 +192,59 @@ public class CommonCommand extends BaseBotCommand {
                 if (item != null) {
                     if (item instanceof AlertItem) {
                         handleRemovingAlertItem(cmd, user, chatId, update, storage, (AlertItem) item);
+                    } else if (item instanceof NoteItem) {
+                        handleRemovingNoteItem(cmd, user, chatId, update, storage, (NoteItem) item);
                     } else {
                         handleRemovingCommonItem(cmd, user, chatId, update, storage, item);
                     }
                 }
             } else if ("mv".equals(cmd.getCommand())) {
                 // move file
-                sendMessage(chatId, "TODO: Moving file: " + cmd.getArguments());
+                sendMessage(chatId, "TODO: Moving item: " + cmd.getArguments());
             } else {
                 log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
             }
         }
+    }
+
+    private void handleRemovingNoteItem(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage, NoteItem note) {
+        if (!note.isDirectory()) {
+            if (cmd.getArguments().size() >= 2 && cmd.getArguments().get(1).equals("1")) {
+                storage.deleteItem(note);
+                sendMessage(chatId, "Note was removed");
+                getContext().clearShortcutCommands(user);
+                getContext().listCurrentDir(update);
+            } else {
+                String removeFile = "/remove";
+                String cancelOperation = "/cancel";
+
+                getContext().clearShortcutCommands(user);
+                getContext().addShortcutCommand(user, removeFile, "rm", note.getFullPath(), "1");
+                getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
+
+                StringBuilder sb = new StringBuilder("Are you sure to remove note '");
+                sb.append(note.getTitle());
+                sb.append("'?\n❌");
+                sb.append(removeFile);
+                sb.append(" ✅");
+                sb.append(cancelOperation);
+                sb.append("\n");
+
+                sendMessage(chatId, sb.toString());
+            }
+        }
+    }
+
+    private void handleDownloadingNoteItem(Long chatId, NoteItem note) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\uD83D\uDCDD Note\n");
+        sb.append("Added: ");
+        sb.append(DATETIME_FORMAT.format(note.getModifiedDate()));
+        sb.append("\n");
+        sb.append(note.getContent());
+
+        sendMessage(chatId, sb.toString());
     }
 
     private void handleDownloadingAlertItem(Long chatId, AlertItem alert) {
@@ -203,7 +258,7 @@ public class CommonCommand extends BaseBotCommand {
         }
         sb.append("\n");
         sb.append("Notification time: ");
-        sb.append(ALERT_FORMAT.format(nextTime));
+        sb.append(DATETIME_FORMAT.format(nextTime));
         sb.append("\n");
         sb.append("\uD83D\uDD14 Notification in ");
         sb.append(TimeUtils.friendlyTimespan(nextTime));

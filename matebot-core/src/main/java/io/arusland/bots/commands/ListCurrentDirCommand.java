@@ -4,6 +4,7 @@ import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
 import io.arusland.storage.AlertItem;
 import io.arusland.storage.Item;
+import io.arusland.storage.NoteItem;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +67,8 @@ public class ListCurrentDirCommand extends BaseBotCommand {
 
                         if (item instanceof AlertItem) {
                             renderAlertItem(user, sb, i, (AlertItem) item);
+                        } else if (item instanceof NoteItem) {
+                            renderNoteItem(user, sb, i, (NoteItem) item);
                         } else {
                             renderCommonItem(user, sb, i, item);
                         }
@@ -77,29 +80,51 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         }
     }
 
-    private void renderAlertItem(User user, StringBuilder sb, int index, AlertItem item) {
+    private void renderNoteItem(User user, StringBuilder sb, int index, NoteItem note) {
         String changeDirShortcut = "/" + (index + 1);
         String removeFileShortcut = "/del" + (index + 1);
         sb.append(changeDirShortcut);
         sb.append(" ");
 
-        if (item.isDirectory()) {
+        if (note.isDirectory()) {
             sb.append(EMOJI_DIR);
         } else {
-            if (item.isActive()) {
+            sb.append("\uD83D\uDCDD");
+        }
+        sb.append(StringUtils.isNotBlank(note.getTitle()) ? note.getTitle() : note.getName());
+        sb.append("\n");
+
+        if (note.isDirectory()) {
+            getContext().addShortcutCommand(user, changeDirShortcut, "cd", note.getFullPath());
+        } else {
+            getContext().addShortcutCommand(user, changeDirShortcut, "dl", note.getFullPath());
+            getContext().addShortcutCommand(user, removeFileShortcut, "rm", note.getFullPath());
+        }
+    }
+
+    private void renderAlertItem(User user, StringBuilder sb, int index, AlertItem alert) {
+        String changeDirShortcut = "/" + (index + 1);
+        String removeFileShortcut = "/del" + (index + 1);
+        sb.append(changeDirShortcut);
+        sb.append(" ");
+
+        if (alert.isDirectory()) {
+            sb.append(EMOJI_DIR);
+        } else {
+            if (alert.isActive()) {
                 sb.append("\uD83D\uDD14");
             } else {
                 sb.append("❌");
             }
         }
-        sb.append(StringUtils.defaultString(item.getTitle(), item.getName()));
+        sb.append(StringUtils.isNotBlank(alert.getTitle()) ? alert.getTitle() : alert.getName());
         sb.append("\n");
 
-        if (item.isDirectory()) {
-            getContext().addShortcutCommand(user, changeDirShortcut, "cd", item.getFullPath());
+        if (alert.isDirectory()) {
+            getContext().addShortcutCommand(user, changeDirShortcut, "cd", alert.getFullPath());
         } else {
-            getContext().addShortcutCommand(user, changeDirShortcut, "dl", item.getFullPath());
-            getContext().addShortcutCommand(user, removeFileShortcut, "rm", item.getFullPath());
+            getContext().addShortcutCommand(user, changeDirShortcut, "dl", alert.getFullPath());
+            getContext().addShortcutCommand(user, removeFileShortcut, "rm", alert.getFullPath());
         }
     }
 
