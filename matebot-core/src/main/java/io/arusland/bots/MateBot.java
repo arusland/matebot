@@ -19,6 +19,7 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.BotSession;
 
 import java.io.File;
 import java.util.*;
@@ -49,6 +50,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         register(new ListCurrentDirCommand(this));
         register(new StartCommand(this));
         register(new UpDirCommand(this));
+        register(new KillBotCommand(this));
         registerAll(ItemCommand.listAll(this));
 
         log.info("MateBot started v0.1");
@@ -58,13 +60,20 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     public static void main(String[] args) {
+        start(args);
+    }
+
+    public static BotSession start(String[] args) {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+
         try {
             BotConfig config = BotConfig.fromCommandArgs(args);
-            telegramBotsApi.registerBot(new MateBot(config));
+            return telegramBotsApi.registerBot(new MateBot(config));
         } catch (Exception e) {
             log.error("App starting failed", e);
         }
+
+        return null;
     }
 
     public String getBotUsername() {

@@ -12,6 +12,7 @@
     <modules>
         <module>matebot-core</module>
         <module>matebot-db</module>
+        <module>matebot-web</module>
     </modules>
 
     <licenses>

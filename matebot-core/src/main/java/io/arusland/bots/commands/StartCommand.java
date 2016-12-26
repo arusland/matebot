@@ -28,7 +28,7 @@ public class StartCommand extends BaseBotCommand implements Comparator<BaseBotCo
         commands.sort(this);
 
         for (BaseBotCommand command : commands) {
-            if (!command.equals(this)) {
+            if (command.isVisible()) {
                 sb.append("/");
                 sb.append(command.getCommandIdentifier());
                 if (StringUtils.isNotBlank(command.getDescription())) {
@@ -40,6 +40,11 @@ public class StartCommand extends BaseBotCommand implements Comparator<BaseBotCo
         }
 
         sendMessage(update.getMessage().getChatId(), sb.toString());
+    }
+
+    @Override
+    public boolean isVisible() {
+        return false;
     }
 
     @Override

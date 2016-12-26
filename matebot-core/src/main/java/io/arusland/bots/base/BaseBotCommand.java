@@ -75,4 +75,11 @@ public abstract class BaseBotCommand extends BotCommand {
 
         return StringUtils.defaultString(currentPath, "/");
     }
+
+    /**
+     * true if command must be visible.
+     */
+    public boolean isVisible() {
+        return true;
+    }
 }
