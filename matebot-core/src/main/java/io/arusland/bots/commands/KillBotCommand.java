@@ -22,6 +22,7 @@ public class KillBotCommand extends BaseBotCommand {
 
     @Override
     public void execute(AbsSender absSender, Update update, String[] arguments) {
+        sendMessage(update.getMessage().getChatId(), "Bye bye!");
         log.warn("Killing jvm...");
         System.exit(1);
     }

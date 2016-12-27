@@ -1,32 +1,29 @@
 package io.arusland.matebot.web;
 
-import io.arusland.bots.MateBot;
-import io.arusland.bots.utils.AlertsRunner;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
-import org.apache.log4j.Logger;
-import org.telegram.telegrambots.updatesreceivers.BotSession;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 public class StartupListener implements ServletContextListener {
-    private BotSession botSession;
-
-    private final Logger log = Logger.getLogger(AlertsRunner.class);
+    private final Logger log = Logger.getLogger(StartupListener.class.getName());
 
     @Override
     public void contextDestroyed(ServletContextEvent ev) {
         log.info("Context stopping...");
-
-        if (botSession != null) {
-            botSession.close();
-            log.info("Bot session stopped");
-        }
     }
 
     @Override
     public void contextInitialized(ServletContextEvent ev) {
         log.info("Bot session starting...");
-        botSession = MateBot.start(new String[0]);
+        try {
+            OpenshiftRunner.run();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.warning(e.toString());
+        } catch (InterruptedException e) {
+            log.warning(e.toString());
+            e.printStackTrace();
+        }
     }
 }
