@@ -4,6 +4,7 @@ import io.arusland.bots.base.BaseCommandBot;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.commands.*;
 import io.arusland.bots.utils.AlertsRunner;
+import io.arusland.bots.utils.ProcessUtil;
 import io.arusland.bots.utils.TimeManagement;
 import io.arusland.storage.AlertItem;
 import io.arusland.storage.Storage;
@@ -54,8 +55,10 @@ public class MateBot extends BaseCommandBot implements BotContext {
         registerAll(ItemCommand.listAll(this));
 
         log.info("MateBot started v0.1");
+        log.info("PID - " + ProcessUtil.getCurrentPID());
         log.info("Config file - " + configInput.getConfigFile());
         log.info("Db directory - " + configInput.getMatebotDbRoot());
+        ProcessUtil.writePIDSafe(new File("./logs"));
         rerunAlerts();
     }
 

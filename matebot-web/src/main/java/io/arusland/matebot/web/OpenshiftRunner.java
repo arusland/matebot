@@ -2,6 +2,7 @@ package io.arusland.matebot.web;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 /**
  * Created by ruslan on 27.12.2016.
@@ -12,6 +13,12 @@ public class OpenshiftRunner {
         File appDir = new File(System.getenv(envAppDir), "matebot");
 
         if (javaHome.exists() && appDir.exists()) {
+            File pidFile = new File(appDir, "logs/matebot.pid");
+
+            if (pidFile.exists()) {
+                killProcess(pidFile);
+            }
+
             String cmd = javaHome + "/bin/java -jar matebot.jar";
             Process p = Runtime.getRuntime()
                     .exec(cmd, null, appDir);
@@ -21,6 +28,15 @@ public class OpenshiftRunner {
 
         throw new RuntimeException("Invalid environment! JAVA_HOME: " + javaHome
                 + "; APP_DIR: " + appDir);
+    }
+
+    private static void killProcess(File pidFile) {
+        try {
+            int pid = Integer.parseInt(new String(Files.readAllBytes(pidFile.toPath())));
+            Runtime.getRuntime().exec("kill " + pid);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void run() throws IOException, InterruptedException {
