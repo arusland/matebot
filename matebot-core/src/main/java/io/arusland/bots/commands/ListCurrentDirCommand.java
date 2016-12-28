@@ -92,6 +92,10 @@ public class ListCurrentDirCommand extends BaseBotCommand {
             sb.append("\uD83D\uDCDD");
         }
         sb.append(StringUtils.isNotBlank(note.getTitle()) ? note.getTitle() : note.getName());
+        if (!note.isDirectory()) {
+            sb.append(" ");
+            sb.append(removeFileShortcut);
+        }
         sb.append("\n");
 
         if (note.isDirectory()) {
@@ -118,6 +122,11 @@ public class ListCurrentDirCommand extends BaseBotCommand {
             }
         }
         sb.append(StringUtils.isNotBlank(alert.getTitle()) ? alert.getTitle() : alert.getName());
+        if (!alert.isDirectory()) {
+            sb.append(" ");
+            sb.append(removeFileShortcut);
+        }
+
         sb.append("\n");
 
         if (alert.isDirectory()) {

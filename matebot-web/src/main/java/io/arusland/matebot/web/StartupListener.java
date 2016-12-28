@@ -38,11 +38,11 @@ public class StartupListener implements ServletContextListener {
         }
     }
 
-    // we need to open bot's page in order to not sleep
+    // please, openshift, don't sleep!
     private class RequestTask extends TimerTask {
         @Override
         public void run() {
-            String content = downloadPage("http://arrbot-aruslandx.rhcloud.com/");
+            String content = downloadPage("YOUR VALID OPENSHIFT URL");
             if (!content.isEmpty()) {
                 Statistics.incrementPageViewCount();
             }
