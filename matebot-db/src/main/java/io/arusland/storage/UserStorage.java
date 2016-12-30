@@ -2,6 +2,7 @@ package io.arusland.storage;
 
 import java.io.File;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Heterogeneous storage associated with certain {@link User}.
@@ -32,4 +33,8 @@ public interface UserStorage {
      * @return Created {@link Item} object.
      */
     Item addItem(String name, File content);
+
+    void setTimeZone(TimeZone timeZone);
+
+    TimeZone getTimeZone();
 }

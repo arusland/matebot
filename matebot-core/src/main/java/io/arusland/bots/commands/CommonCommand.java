@@ -154,7 +154,7 @@ public class CommonCommand extends BaseBotCommand {
             StringBuilder sb = new StringBuilder();
             sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
-            sb.append(DATETIME_FORMAT.format(nextTime));
+            sb.append(DATETIME_FORMAT.format(getContext().toClient(nextTime)));
             sb.append("\n");
             sb.append("\uD83D\uDD14 Notification in ");
             sb.append(TimeUtils.friendlyTimespan(nextTime));
@@ -258,7 +258,7 @@ public class CommonCommand extends BaseBotCommand {
         }
         sb.append("\n");
         sb.append("Notification time: ");
-        sb.append(DATETIME_FORMAT.format(nextTime));
+        sb.append(DATETIME_FORMAT.format(getContext().toClient(nextTime)));
         sb.append("\n");
         sb.append("\uD83D\uDD14 Notification in ");
         sb.append(TimeUtils.friendlyTimespan(nextTime));

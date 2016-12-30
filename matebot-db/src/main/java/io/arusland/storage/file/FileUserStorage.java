@@ -22,6 +22,7 @@ public class FileUserStorage implements UserStorage, ItemFactory {
     private final User user;
     private final File root;
     private List<Item> rootItems;
+    private TimeZoneClient timeZoneClient;
 
     FileUserStorage(User user, File root) {
         this.user = Validate.notNull(user, "user");
@@ -75,7 +76,7 @@ public class FileUserStorage implements UserStorage, ItemFactory {
 
     @Override
     public Item addItem(String path, String content) {
-        AlertInfo alertInfo = AlertInfo.parse(content);
+        AlertInfo alertInfo = AlertInfo.parse(content, getTimeZoneClient());
 
         if (alertInfo != null && alertInfo.valid) {
             return tryAddAlertItem(path, alertInfo);
@@ -115,6 +116,24 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         Item parent = getItemByPath(type);
 
         return addItemIntoParentItem(name, content, (FileItem) parent);
+    }
+
+    @Override
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZoneClient = timeZone != null ? TimeZoneClientStandard.create(timeZone) : null;
+    }
+
+    @Override
+    public TimeZone getTimeZone() {
+        return getTimeZoneClient().getTimeZone();
+    }
+
+    private TimeZoneClient getTimeZoneClient() {
+        if (timeZoneClient == null) {
+            timeZoneClient = TimeZoneClientStandard.create(TimeZone.getDefault());
+        }
+
+        return timeZoneClient;
     }
 
     @Override
@@ -230,10 +249,10 @@ public class FileUserStorage implements UserStorage, ItemFactory {
     private Optional<FileAlertItem> createAlertItem(File file, ItemPath itemPath) {
         try {
             String content = FileUtils.readFileToString(file, "UTF-8");
-            AlertInfo info = AlertInfo.parse(content);
+            AlertInfo info = AlertInfo.parse(content, getTimeZoneClient());
 
             if (info != null) {
-                return Optional.of(new FileAlertItem(user, file, itemPath, info, this));
+                return Optional.of(new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient()));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -260,7 +279,7 @@ public class FileUserStorage implements UserStorage, ItemFactory {
             }
 
             ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-            return new FileAlertItem(user, file, itemPath, info, this);
+            return new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient());
         }
 
         return null;

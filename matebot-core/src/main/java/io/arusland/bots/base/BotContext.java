@@ -8,7 +8,9 @@ import org.telegram.telegrambots.api.objects.File;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
 
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by ruslan on 03.12.2016.
@@ -66,4 +68,20 @@ public interface BotContext {
      * Stops current alerts and run existing alerts.
      */
     void rerunAlerts();
+
+    /**
+     * Converts client time to local time.
+     */
+    Date fromClient(Date clientTime);
+
+    /**
+     * Converts local time to client time.
+     */
+    Date toClient(Date clientTime);
+
+    /**
+     * Sets time zone of the client.
+     * @param timeZone
+     */
+    void setTimeZone(TimeZone timeZone);
 }

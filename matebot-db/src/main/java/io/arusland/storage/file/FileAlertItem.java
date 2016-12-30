@@ -18,12 +18,15 @@ import static java.util.stream.Collectors.toList;
 public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private static final int MESSAGE_TITLE_LENGTH = 10;
     private final AlertInfo info;
+    private final TimeZoneClient timeZoneClient;
     private Date nextDate;
     private String title;
 
-    public FileAlertItem(User user, File file, ItemPath path, AlertInfo info, ItemFactory itemFactory) {
+    public FileAlertItem(User user, File file, ItemPath path, AlertInfo info,
+                         ItemFactory itemFactory, TimeZoneClient timeZoneClient) {
         super(user, ItemType.ALERTS, file, path, itemFactory);
         this.info = Validate.notNull(info, "info");
+        this.timeZoneClient = Validate.notNull(timeZoneClient, "timeZoneClient");
     }
 
     @Override
@@ -81,43 +84,44 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
             }
         }
 
-        Calendar alertTime = Calendar.getInstance();
-        long nowMillis = alertTime.getTimeInMillis();
-        alertTime.set(Calendar.SECOND, 0);
-        alertTime.set(Calendar.MILLISECOND, 0);
-        alertTime.set(Calendar.HOUR_OF_DAY, info.hour);
-        alertTime.set(Calendar.MINUTE, info.minute);
+        Calendar alertClientTime = Calendar.getInstance();
+        alertClientTime.setTime(timeZoneClient.fromClient(alertClientTime.getTime()));
+        long nowMillis = alertClientTime.getTimeInMillis();
+        alertClientTime.set(Calendar.SECOND, 0);
+        alertClientTime.set(Calendar.MILLISECOND, 0);
+        alertClientTime.set(Calendar.HOUR_OF_DAY, info.hour);
+        alertClientTime.set(Calendar.MINUTE, info.minute);
 
         if (info.weekDays > 0) {
             List<Integer> alertDays = getAlertDays(info.weekDays);
 
             while (true) {
-                int dayOfWeek = getDayOfWeek(alertTime);
+                int dayOfWeek = getDayOfWeek(alertClientTime);
 
-                if (alertDays.contains(dayOfWeek) && alertTime.getTimeInMillis() > nowMillis) {
-                    refreshState(alertTime);
+                if (alertDays.contains(dayOfWeek) && alertClientTime.getTimeInMillis() > nowMillis) {
+                    refreshState(alertClientTime);
                     return;
                 }
 
-                alertTime.add(Calendar.HOUR_OF_DAY, 24);
+                alertClientTime.add(Calendar.HOUR_OF_DAY, 24);
             }
         }
 
         if (info.day != null) {
             if (info.month != null) {
                 if (info.year != null) {
-                    alertTime.set(Calendar.YEAR, info.year);
-                    alertTime.set(Calendar.MONTH, info.month - 1);
-                    alertTime.set(Calendar.DAY_OF_MONTH, info.day);
-                    refreshState(alertTime);
+                    alertClientTime.set(Calendar.YEAR, info.year);
+                    alertClientTime.set(Calendar.MONTH, info.month - 1);
+                    alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
+                    refreshState(alertClientTime);
                     return;
                 } else {
-                    int year = alertTime.get(Calendar.YEAR);
+                    int year = alertClientTime.get(Calendar.YEAR);
                     while (!DateValidator.isValid(info.day, info.month, year)) {
                         year++;
                     }
-                    alertTime.set(Calendar.YEAR, year);
-                    refreshState(alertTime);
+                    alertClientTime.set(Calendar.YEAR, year);
+                    refreshState(alertClientTime);
                     return;
                 }
             } else {
@@ -126,19 +130,19 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         }
     }
 
-    private void refreshState(Calendar cal) {
+    private void refreshState(Calendar clientTime) {
         String newTitle = String.format("%02d:%02d %02d:%02d:%d",
                 info.hour, info.minute,
-                cal.get(Calendar.DAY_OF_MONTH),
-                cal.get(Calendar.MONTH) + 1,
-                cal.get(Calendar.YEAR));
+                clientTime.get(Calendar.DAY_OF_MONTH),
+                clientTime.get(Calendar.MONTH) + 1,
+                clientTime.get(Calendar.YEAR));
 
         if (StringUtils.isNotBlank(getMessage())) {
             newTitle += " " + StringUtils.abbreviate(getMessage(), MESSAGE_TITLE_LENGTH);
         }
 
         this.title = newTitle;
-        this.nextDate = cal.getTime();
+        this.nextDate = timeZoneClient.fromClient(clientTime.getTime());
     }
 
     private static List<Integer> getAlertDays(int flags) {

@@ -1,5 +1,6 @@
 package io.arusland.storage.file;
 
+import io.arusland.storage.TimeZoneClient;
 import io.arusland.storage.util.DateValidator;
 import org.apache.commons.lang3.StringUtils;
 
@@ -75,23 +76,24 @@ public class AlertInfo {
         return DateValidator.isValid(day, month, year);
     }
 
-    public static AlertInfo parse(final String input) {
+    public static AlertInfo parse(final String input, TimeZoneClient timeZoneClient) {
         if (StringUtils.isBlank(input)) {
             return null;
         }
 
         AlertInfo info = parseInternal(input.trim());
 
-        return normalize(info);
+        return normalize(info, timeZoneClient);
     }
 
     /**
      * Normazlize fields (year, month, day) of {@link AlertInfo}
      * when they all are <code>null</code>.
      *
-     * @param info input instance.
+     * @param info           input instance.
+     * @param timeZoneClient Client time converter.
      */
-    private static AlertInfo normalize(final AlertInfo info) {
+    private static AlertInfo normalize(final AlertInfo info, TimeZoneClient timeZoneClient) {
         if (info == null || !info.valid) {
             return info;
         }
@@ -99,6 +101,7 @@ public class AlertInfo {
         if (info.weekDays == 0 &&
                 info.year == null && info.month == null && info.day == null) {
             Calendar cal = Calendar.getInstance();
+            cal.setTime(timeZoneClient.toClient(cal.getTime()));
             long currentMillis = cal.getTimeInMillis();
             cal.set(Calendar.HOUR_OF_DAY, info.hour);
             cal.set(Calendar.MINUTE, info.minute);

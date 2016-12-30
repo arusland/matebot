@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import static junit.framework.TestCase.assertTrue;
 
@@ -30,7 +31,13 @@ public class TestUtils {
     }
 
     public static Calendar calcNextDayAfterTime(int hour, int minute) {
+        return calcNextDayAfterTime(hour, minute,
+                TimeZoneClientStandard.create(TimeZone.getDefault()));
+    }
+
+    public static Calendar calcNextDayAfterTime(int hour, int minute, TimeZoneClient timeZoneClient) {
         Calendar now = Calendar.getInstance();
+        now.setTime(timeZoneClient.fromClient(now.getTime()));
         int hourNow = now.get(Calendar.HOUR_OF_DAY);
         int minuteNow = now.get(Calendar.MINUTE);
 

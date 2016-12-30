@@ -6,10 +6,7 @@ import io.arusland.bots.commands.*;
 import io.arusland.bots.utils.AlertsRunner;
 import io.arusland.bots.utils.ProcessUtil;
 import io.arusland.bots.utils.TimeManagement;
-import io.arusland.storage.AlertItem;
-import io.arusland.storage.Storage;
-import io.arusland.storage.StorageFactory;
-import io.arusland.storage.UserStorage;
+import io.arusland.storage.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
@@ -40,6 +37,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
     private final List<ShortcutCommand> shortcutCommands = new ArrayList<>();
     private final CommonCommand commonCommand;
     private final AlertsRunner alertsRunner;
+    private TimeZoneClient timeZoneClient = new TimeZoneClientStandard();
 
     public MateBot(BotConfig configInput) {
         super();
@@ -137,6 +135,21 @@ public class MateBot extends BaseCommandBot implements BotContext {
     @Override
     public void rerunAlerts() {
         alertsRunner.rerunAlerts();
+    }
+
+    @Override
+    public Date fromClient(Date clientTime) {
+        return timeZoneClient.fromClient(clientTime);
+    }
+
+    @Override
+    public Date toClient(Date clientTime) {
+        return timeZoneClient.toClient(clientTime);
+    }
+
+    @Override
+    public void setTimeZone(TimeZone timeZone) {
+        timeZoneClient = TimeZoneClientStandard.create(timeZone);
     }
 
     @Override

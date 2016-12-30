@@ -22,7 +22,7 @@ import java.util.List;
  */
 public interface AlertItem extends Item<AlertItem> {
     /**
-     * Next alert time.
+     * Next alert time. Local time zone.
      */
     Date nextTime();
 

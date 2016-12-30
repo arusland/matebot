@@ -1,9 +1,13 @@
 package io.arusland.storage.file;
 
 import io.arusland.storage.TestUtils;
+import io.arusland.storage.TimeZoneClient;
+import io.arusland.storage.TimeZoneClientStandard;
 import org.junit.Test;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 import static junit.framework.TestCase.*;
 
@@ -11,9 +15,33 @@ import static junit.framework.TestCase.*;
  * Created by ruslan on 10.12.2016.
  */
 public class AlertInfoTest {
+    private final static TimeZoneClient timeZoneClient = new TimeZoneClientStandard();
+
+    @Test
+    public void testTimeZoneClient() {
+        TimeZoneClient timeZoneTashkent = TimeZoneClientStandard.create(TimeZone.getTimeZone("GMT+5:00"));
+        Calendar calNow = Calendar.getInstance();
+        calNow.set(Calendar.MILLISECOND, 0); // clean milliseconds
+        Date localTime = calNow.getTime();
+        Date clientTime = timeZoneTashkent.toClient(localTime);
+        System.out.println("Local timezone: " + TimeZone.getDefault().getDisplayName());
+        System.out.println("Client timezone: " + timeZoneTashkent.getTimeZone().getDisplayName());
+        System.out.println("Local time: " + localTime);
+        System.out.println("Client time: " + clientTime);
+        Date localTime2 = timeZoneTashkent.fromClient(clientTime);
+        assertFalse(localTime.equals(clientTime));
+        assertEquals(localTime, localTime2);
+
+        if (timeZoneTashkent.getTimeZone().getRawOffset() > TimeZone.getDefault().getRawOffset()) {
+            assertTrue(clientTime.getTime() > localTime.getTime());
+        } else {
+            assertTrue(clientTime.getTime() < localTime.getTime());
+        }
+    }
+
     @Test
     public void testFullWithMessage() {
-        AlertInfo info = AlertInfo.parse("7:43 05:10:2012 Malik birthday ");
+        AlertInfo info = parseInfo("7:43 05:10:2012 Malik birthday ");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -28,7 +56,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutMessage() {
-        AlertInfo info = AlertInfo.parse("07:03 5:12:2017");
+        AlertInfo info = parseInfo("07:03 5:12:2017");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -43,7 +71,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithEmptyMessage() {
-        AlertInfo info = AlertInfo.parse("07:03 5:12:2017 ");
+        AlertInfo info = parseInfo("07:03 5:12:2017 ");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -58,7 +86,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithEmptyMessageStartsWithSpace() {
-        AlertInfo info = AlertInfo.parse(" 07:03 5:12:2017");
+        AlertInfo info = parseInfo(" 07:03 5:12:2017");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -73,7 +101,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearWithMessage() {
-        AlertInfo info = AlertInfo.parse("07:3 23:2 My message");
+        AlertInfo info = parseInfo("07:3 23:2 My message");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -88,7 +116,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearWithEmptyMessage() {
-        AlertInfo info = AlertInfo.parse("07:3 23:2 ");
+        AlertInfo info = parseInfo("07:3 23:2 ");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -103,7 +131,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearWithoutMessage() {
-        AlertInfo info = AlertInfo.parse("07:3 23:2");
+        AlertInfo info = parseInfo("07:3 23:2");
 
         assertTrue(info.valid);
         assertEquals(7, info.hour);
@@ -119,7 +147,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithMessage() {
-        AlertInfo info = AlertInfo.parse("14:33 7: Hello !");
+        AlertInfo info = parseInfo("14:33 7: Hello !");
 
         assertTrue(info.valid);
         assertEquals(14, info.hour);
@@ -134,7 +162,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithEmptyMessage() {
-        AlertInfo info = AlertInfo.parse("14:33 7: ");
+        AlertInfo info = parseInfo("14:33 7: ");
 
         assertTrue(info.valid);
         assertEquals(14, info.hour);
@@ -149,7 +177,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithoutMessage() {
-        AlertInfo info = AlertInfo.parse("14:33 7:");
+        AlertInfo info = parseInfo("14:33 7:");
 
         assertTrue(info.valid);
         assertEquals(14, info.hour);
@@ -164,7 +192,7 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithoutYearAndMonthWithMessageLikeDay() {
-        AlertInfo info = AlertInfo.parse("14:33 7d");
+        AlertInfo info = parseInfo("14:33 7d");
         Calendar cal = calcNextDayAfterTime(info);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
@@ -183,7 +211,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithMessage() {
-        AlertInfo info = AlertInfo.parse("23:59 Alert message!");
+        AlertInfo info = parseInfo("23:59 Alert message!");
         Calendar cal = calcNextDayAfterTime(info);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
@@ -202,7 +230,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithEmptyMessage() {
-        AlertInfo info = AlertInfo.parse("22:1 ");
+        AlertInfo info = parseInfo("22:1 ");
         Calendar cal = calcNextDayAfterTime(info);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
@@ -221,7 +249,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithoutMessage() {
-        AlertInfo info = AlertInfo.parse("12:21");
+        AlertInfo info = parseInfo("12:21");
         Calendar cal = calcNextDayAfterTime(info);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
@@ -240,7 +268,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWithoutMessageStartsWithSpace() {
-        AlertInfo info = AlertInfo.parse(" 12:21");
+        AlertInfo info = parseInfo(" 12:21");
         Calendar cal = calcNextDayAfterTime(info);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
@@ -259,7 +287,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWeekDaysWithMessage() {
-        AlertInfo info = AlertInfo.parse("23:59 1-2,7 Alert message!");
+        AlertInfo info = parseInfo("23:59 1-2,7 Alert message!");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -274,7 +302,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWeekDaysWithEmptyMessage() {
-        AlertInfo info = AlertInfo.parse("23:59 5 ");
+        AlertInfo info = parseInfo("23:59 5 ");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -289,7 +317,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWeekDaysWithoutMessage() {
-        AlertInfo info = AlertInfo.parse("23:59 5-7");
+        AlertInfo info = parseInfo("23:59 5-7");
 
         assertTrue(info.valid);
         assertEquals(23, info.hour);
@@ -304,7 +332,7 @@ public class AlertInfoTest {
 
     @Test
     public void testShortWrongWeekDaysWithMessage() {
-        AlertInfo info = AlertInfo.parse("23:59 5-8 strange message");
+        AlertInfo info = parseInfo("23:59 5-8 strange message");
         Calendar cal = calcNextDayAfterTime(info);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
@@ -325,96 +353,100 @@ public class AlertInfoTest {
 
     @Test
     public void testFullWithMessageInvalid() {
-        AlertInfo info = AlertInfo.parse("7:43 05:13:2012 Malik birthday ");
+        AlertInfo info = parseInfo("7:43 05:13:2012 Malik birthday ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWith29FebInvalid() {
-        AlertInfo info = AlertInfo.parse("7:43 29:2:2001 ");
+        AlertInfo info = parseInfo("7:43 29:2:2001 ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWithZeroDayInvalid() {
-        AlertInfo info = AlertInfo.parse("7:43 0:02:2001");
+        AlertInfo info = parseInfo("7:43 0:02:2001");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWithZeroMonthNovInvalid() {
-        AlertInfo info = AlertInfo.parse("7:43 1:0:2012  ");
+        AlertInfo info = parseInfo("7:43 1:0:2012  ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFullWith31NovInvalid() {
-        AlertInfo info = AlertInfo.parse("7:43 31:11:2000");
+        AlertInfo info = parseInfo("7:43 31:11:2000");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testWithTimeInvalid() {
-        AlertInfo info = AlertInfo.parse("24:00 ");
+        AlertInfo info = parseInfo("24:00 ");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testWithTimeMinuteInvalid() {
-        AlertInfo info = AlertInfo.parse("13:60 foo bar");
+        AlertInfo info = parseInfo("13:60 foo bar");
 
         assertFalse(info.valid);
     }
 
     @Test
     public void testFormatInvalid() {
-        AlertInfo info = AlertInfo.parse("13:");
+        AlertInfo info = parseInfo("13:");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid2() {
-        AlertInfo info = AlertInfo.parse("13: ");
+        AlertInfo info = parseInfo("13: ");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid3() {
-        AlertInfo info = AlertInfo.parse("2");
+        AlertInfo info = parseInfo("2");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid4() {
-        AlertInfo info = AlertInfo.parse("05:5D");
+        AlertInfo info = parseInfo("05:5D");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid5() {
-        AlertInfo info = AlertInfo.parse("");
+        AlertInfo info = parseInfo("");
 
         assertNull(info);
     }
 
     @Test
     public void testFormatInvalid6() {
-        AlertInfo info = AlertInfo.parse(null);
+        AlertInfo info = parseInfo(null);
 
         assertNull(info);
     }
 
     private static Calendar calcNextDayAfterTime(AlertInfo info) {
-        return TestUtils.calcNextDayAfterTime(info.hour, info.minute);
+        return TestUtils.calcNextDayAfterTime(info.hour, info.minute, timeZoneClient);
+    }
+
+    private static AlertInfo parseInfo(String input) {
+        return AlertInfo.parse(input, timeZoneClient);
     }
 }
