@@ -51,8 +51,8 @@ public class AlertItemTest {
         assertEquals("/alerts/" + alert.getName(), alert.getFullPath());
         assertEquals("", alert.getMessage());
         assertEquals(alertTime.getTime(), alert.nextTime());
-        assertEquals(String.format("02:43 %02d:%02d:2016", alertTime.get(Calendar.DAY_OF_MONTH),
-                alertTime.get(Calendar.MONTH) + 1), alert.getTitle());
+        assertEquals(String.format("02:43 %02d:%02d:%d", alertTime.get(Calendar.DAY_OF_MONTH),
+                alertTime.get(Calendar.MONTH) + 1, alertTime.get(Calendar.YEAR)), alert.getTitle());
     }
 
     @Test
@@ -72,8 +72,8 @@ public class AlertItemTest {
         assertEquals("/alerts/" + alert.getName(), alert.getFullPath());
         assertEquals("Go home, stop coding!", alert.getMessage());
         assertEquals(alertTime.getTime(), alert.nextTime());
-        assertEquals(String.format("23:58 %02d:%02d:2016 Go home...", alertTime.get(Calendar.DAY_OF_MONTH),
-                alertTime.get(Calendar.MONTH) + 1), alert.getTitle());
+        assertEquals(String.format("23:58 %02d:%02d:%d Go home...", alertTime.get(Calendar.DAY_OF_MONTH),
+                alertTime.get(Calendar.MONTH) + 1, alertTime.get(Calendar.YEAR)), alert.getTitle());
     }
 
     @Test

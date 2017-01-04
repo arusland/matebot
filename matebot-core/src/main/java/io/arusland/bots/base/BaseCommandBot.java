@@ -53,9 +53,6 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
                 log.error(e.getMessage(), e);
                 sendMessage(update.getMessage().getChatId(), "⚠ error: " + e.getMessage());
             }
-        } else {
-            log.warn("Message from alien skipped: " + update.getMessage());
-            sendMessage(update.getMessage().getChatId(), "\uD83E\uDD16 Sorry, but it is personal bot. You can install you own one from https://github.com/arusland/matebot");
         }
     }
 
@@ -67,6 +64,25 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
     protected abstract boolean filter(Message message);
 
     private boolean executeCommand(Update update, Message message) {
+        BaseBotCommand cmd = getHandlerCommand(message);
+
+        if (cmd != null) {
+            log.info("Executing command: " + cmd.getCommandIdentifier());
+            String[] commandSplit = message.getText().split(BotCommand.COMMAND_PARAMETER_SEPARATOR);
+            String[] parameters = Arrays.copyOfRange(commandSplit, 1, commandSplit.length);
+            try {
+                cmd.execute(this, update, parameters);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                sendMessage(message.getChatId(), "⚠ error: " + e.getMessage());
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    protected BaseBotCommand getHandlerCommand(Message message) {
         if (message.hasText()) {
             String text = message.getText();
             if (text.startsWith(BotCommand.COMMAND_INIT_CHARACTER)) {
@@ -74,23 +90,11 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
                 String[] commandSplit = commandMessage.split(BotCommand.COMMAND_PARAMETER_SEPARATOR);
 
                 String command = commandSplit[0];
-                BaseBotCommand cmd = commandsMap.get(command);
-
-                if (cmd != null) {
-                    log.info("Executing command: " + command);
-                    String[] parameters = Arrays.copyOfRange(commandSplit, 1, commandSplit.length);
-                    try {
-                        cmd.execute(this, update, parameters);
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                        sendMessage(message.getChatId(), "⚠ error: " + e.getMessage());
-                    }
-                    return true;
-                }
+                return commandsMap.get(command);
             }
         }
 
-        return false;
+        return null;
     }
 
     public List<BaseBotCommand> getRegisteredCommands() {

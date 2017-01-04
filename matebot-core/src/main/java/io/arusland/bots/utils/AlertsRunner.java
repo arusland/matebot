@@ -1,5 +1,6 @@
 package io.arusland.bots.utils;
 
+import io.arusland.bots.BotConfig;
 import io.arusland.storage.*;
 import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
@@ -18,12 +19,14 @@ public class AlertsRunner {
     private final TimeManagement timeManagement;
     private final Map<AlertItem, Date> alerts = Collections.synchronizedMap(new IdentityHashMap<>());
     private final BiConsumer<AlertItem, Long> alertFiredOnUserIdHandler;
+    private final BotConfig botConfig;
 
     public AlertsRunner(Storage storage, TimeManagement timeManagement,
-                        BiConsumer<AlertItem, Long> alertFiredOnUserIdHandler) {
+                        BiConsumer<AlertItem, Long> alertFiredOnUserIdHandler, BotConfig botConfig) {
         this.storage = Validate.notNull(storage, "storage");
         this.timeManagement = Validate.notNull(timeManagement, "timeManagement");
         this.alertFiredOnUserIdHandler = Validate.notNull(alertFiredOnUserIdHandler, "alertFiredOnUserIdHandler");
+        this.botConfig = Validate.notNull(botConfig, "botConfig");
     }
 
     public void rerunAlerts() {
@@ -35,6 +38,7 @@ public class AlertsRunner {
 
         for (User user : users) {
             UserStorage ustorage = storage.getOrCreate(user);
+            ustorage.setTimeZone(botConfig.getUserTimeZone(user.getId()));
             List<AlertItem> alerts = ustorage.getItemByPath(ItemType.ALERTS)
                     .listItems();
             List<AlertItem> activeAlerts = alerts.stream()

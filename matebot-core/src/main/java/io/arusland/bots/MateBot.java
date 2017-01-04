@@ -1,5 +1,6 @@
 package io.arusland.bots;
 
+import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BaseCommandBot;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.commands.*;
@@ -37,7 +38,6 @@ public class MateBot extends BaseCommandBot implements BotContext {
     private final List<ShortcutCommand> shortcutCommands = new ArrayList<>();
     private final CommonCommand commonCommand;
     private final AlertsRunner alertsRunner;
-    private TimeZoneClient timeZoneClient = new TimeZoneClientStandard();
 
     public MateBot(BotConfig configInput) {
         super();
@@ -45,11 +45,13 @@ public class MateBot extends BaseCommandBot implements BotContext {
         this.configOutput = BotConfig.fromUserDir();
         this.storage = StorageFactory.createStorage(configInput.getMatebotDbRoot(), Collections.emptyMap());
         this.commonCommand = new CommonCommand(this);
-        this.alertsRunner = new AlertsRunner(this.storage, new TimeManagement(), new AlertsRunnerHandler());
+        this.alertsRunner = new AlertsRunner(this.storage, new TimeManagement(), new AlertsRunnerHandler(),
+                configOutput);
         register(new ListCurrentDirCommand(this));
         register(new StartCommand(this));
         register(new UpDirCommand(this));
         register(new KillBotCommand(this));
+        register(new SetTimeZoneCommand(this));
         registerAll(ItemCommand.listAll(this));
 
         log.info("MateBot started v0.1");
@@ -96,18 +98,40 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
         boolean skipThisMessage = message.getFrom().getId() != userId;
 
-        if (!skipThisMessage) {
-            // save user's private chat's id
-            Integer messageUserId = message.getFrom().getId();
-            Long chatId = message.getChatId();
+        if (skipThisMessage) {
+            log.warn("Message from alien skipped: " + message);
+            sendMessage(message.getChatId(),
+                    "\uD83E\uDD16 Sorry, but it is personal bot. You can install you own one from https://github.com/arusland/matebot");
+            return true;
+        }
 
-            if (messageUserId != null && chatId != null && chatId > 0 && message.getChat().isUserChat()) {
-                configOutput.setUserChatId(messageUserId, chatId);
-                configOutput.save();
+        if (configOutput.getUserTimeZone(message.getFrom().getId()) == null) {
+            BaseBotCommand cmd = getHandlerCommand(message);
+
+            if (!(cmd instanceof SetTimeZoneCommand)) {
+                sendMessage(message.getChatId(),
+                        "⚠ Sorry, but you need to set up your time zone. Via command: /tz +5:00");
+                return true;
             }
         }
 
-        return skipThisMessage;
+        // save user's private chat's id
+        saveUserPrivateChatId(message);
+
+        return false;
+    }
+
+    private void saveUserPrivateChatId(Message message) {
+        Integer messageUserId = message.getFrom().getId();
+        Long chatId = message.getChatId();
+        long savedChatId = configOutput.getUserChatId(messageUserId);
+
+        if (messageUserId != null && chatId != null && chatId > 0
+                && savedChatId != chatId
+                && message.getChat().isUserChat()) {
+            configOutput.setUserChatId(messageUserId, chatId);
+            configOutput.save();
+        }
     }
 
     @Override
@@ -118,7 +142,10 @@ public class MateBot extends BaseCommandBot implements BotContext {
     @Override
     public UserStorage getUserStorage(User user) {
         io.arusland.storage.User user2 = new io.arusland.storage.User(user.getId(), user.getUserName());
-        return storage.getOrCreate(user2);
+        UserStorage userStorage = storage.getOrCreate(user2);
+        userStorage.setTimeZone(getTimeZone(user));
+
+        return userStorage;
     }
 
     @Override
@@ -138,18 +165,24 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     @Override
-    public Date fromClient(Date clientTime) {
-        return timeZoneClient.fromClient(clientTime);
+    public Date fromClient(User user, Date clientTime) {
+        return getTimeZoneClient(user.getId()).fromClient(clientTime);
     }
 
     @Override
-    public Date toClient(Date clientTime) {
-        return timeZoneClient.toClient(clientTime);
+    public Date toClient(User user, Date clientTime) {
+        return getTimeZoneClient(user.getId()).toClient(clientTime);
     }
 
     @Override
-    public void setTimeZone(TimeZone timeZone) {
-        timeZoneClient = TimeZoneClientStandard.create(timeZone);
+    public void setTimeZone(User user, TimeZone timeZone) {
+        configOutput.setUserTimeZone(user.getId(), timeZone);
+        configOutput.save();
+    }
+
+    @Override
+    public TimeZone getTimeZone(User user) {
+        return configOutput.getUserTimeZone(user.getId());
     }
 
     @Override
@@ -242,5 +275,15 @@ public class MateBot extends BaseCommandBot implements BotContext {
                 }
             }
         }
+    }
+
+    private TimeZoneClient getTimeZoneClient(long userId) {
+        TimeZone timeZone = configOutput.getUserTimeZone(userId);
+
+        if (timeZone == null) {
+            timeZone = TimeZone.getDefault();
+        }
+
+        return TimeZoneClientStandard.create(timeZone);
     }
 }

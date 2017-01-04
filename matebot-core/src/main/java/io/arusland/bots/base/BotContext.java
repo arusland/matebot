@@ -72,16 +72,20 @@ public interface BotContext {
     /**
      * Converts client time to local time.
      */
-    Date fromClient(Date clientTime);
+    Date fromClient(User user, Date clientTime);
 
     /**
      * Converts local time to client time.
      */
-    Date toClient(Date clientTime);
+    Date toClient(User user, Date clientTime);
 
     /**
      * Sets time zone of the client.
-     * @param timeZone
      */
-    void setTimeZone(TimeZone timeZone);
+    void setTimeZone(User user, TimeZone timeZone);
+
+    /**
+     * Returns timezone if user specified timezone, otherwise <code>null</code>.
+     */
+    TimeZone getTimeZone(User user);
 }

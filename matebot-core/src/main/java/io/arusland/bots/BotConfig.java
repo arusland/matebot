@@ -9,6 +9,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * Configuration for MateBot.
@@ -24,6 +25,24 @@ public class BotConfig {
     protected BotConfig(Properties prop, File configFile) {
         this.prop = Validate.notNull(prop, "prop");
         this.configFile = configFile;
+    }
+
+    public TimeZone getUserTimeZone(long userId) {
+        String tz = getProperty("user" + userId + ".timezone", "");
+
+        if (StringUtils.isNoneBlank(tz)) {
+            return TimeZone.getTimeZone(tz);
+        }
+
+        return null;
+    }
+
+    public void setUserTimeZone(long userId, TimeZone timeZone) {
+        if (timeZone != null) {
+            prop.setProperty("user" + userId + ".timezone", timeZone.getID());
+        } else {
+            prop.remove("user" + userId + ".timezone");
+        }
     }
 
     public String getMatebotName() {
@@ -142,7 +161,7 @@ public class BotConfig {
      *
      */
     public static BotConfig fromUserDir() {
-        Properties prop = new Properties();
+
 
         File file = new File(System.getProperty("user.home"), ".matebot");
         if (!file.exists()) {
@@ -151,6 +170,11 @@ public class BotConfig {
 
         file = new File(file, "config.properties");
 
+        if (file.exists()) {
+            return BotConfig.load(file.getAbsolutePath());
+        }
+
+        Properties prop = new Properties();
         return new BotConfig(prop, file);
     }
 }

@@ -154,7 +154,7 @@ public class CommonCommand extends BaseBotCommand {
             StringBuilder sb = new StringBuilder();
             sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
-            sb.append(DATETIME_FORMAT.format(getContext().toClient(nextTime)));
+            sb.append(DATETIME_FORMAT.format(getContext().toClient(user, nextTime)));
             sb.append("\n");
             sb.append("\uD83D\uDD14 Notification in ");
             sb.append(TimeUtils.friendlyTimespan(nextTime));
@@ -179,9 +179,9 @@ public class CommonCommand extends BaseBotCommand {
 
                 if (item != null) {
                     if (item instanceof AlertItem) {
-                        handleDownloadingAlertItem(chatId, (AlertItem) item);
+                        handleDownloadingAlertItem(chatId, (AlertItem) item, user);
                     } else if (item instanceof NoteItem) {
-                        handleDownloadingNoteItem(chatId, (NoteItem) item);
+                        handleDownloadingNoteItem(chatId, (NoteItem) item, user);
                     } else {
                         handleDownloadingCommonItem(chatId, item);
                     }
@@ -235,19 +235,19 @@ public class CommonCommand extends BaseBotCommand {
         }
     }
 
-    private void handleDownloadingNoteItem(Long chatId, NoteItem note) {
+    private void handleDownloadingNoteItem(Long chatId, NoteItem note, User user) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("\uD83D\uDCDD Note\n");
         sb.append("Added: ");
-        sb.append(DATETIME_FORMAT.format(note.getModifiedDate()));
+        sb.append(DATETIME_FORMAT.format(getContext().toClient(user, note.getModifiedDate())));
         sb.append("\n");
         sb.append(note.getContent());
 
         sendMessage(chatId, sb.toString());
     }
 
-    private void handleDownloadingAlertItem(Long chatId, AlertItem alert) {
+    private void handleDownloadingAlertItem(Long chatId, AlertItem alert, User user) {
         Date nextTime = alert.nextTime();
         StringBuilder sb = new StringBuilder();
 
@@ -258,10 +258,15 @@ public class CommonCommand extends BaseBotCommand {
         }
         sb.append("\n");
         sb.append("Notification time: ");
-        sb.append(DATETIME_FORMAT.format(getContext().toClient(nextTime)));
+        sb.append(DATETIME_FORMAT.format(getContext().toClient(user, nextTime)));
         sb.append("\n");
-        sb.append("\uD83D\uDD14 Notification in ");
-        sb.append(TimeUtils.friendlyTimespan(nextTime));
+
+        if (alert.isActive()) {
+            sb.append("\uD83D\uDD14 Notification in ");
+            sb.append(TimeUtils.friendlyTimespan(nextTime));
+        } else {
+            sb.append("❌ Not active");
+        }
         sendMessage(chatId, sb.toString());
     }
 
