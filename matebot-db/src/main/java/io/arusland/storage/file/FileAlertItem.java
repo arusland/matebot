@@ -42,6 +42,11 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     }
 
     @Override
+    public String getSource() {
+        return info.content;
+    }
+
+    @Override
     public String getTitle() {
         calcNextState();
 

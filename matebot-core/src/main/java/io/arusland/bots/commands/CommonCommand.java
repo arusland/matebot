@@ -261,6 +261,9 @@ public class CommonCommand extends BaseBotCommand {
         sb.append("Notification time: ");
         sb.append(DATETIME_FORMAT.format(getContext().toClient(user, nextTime)));
         sb.append("\n");
+        sb.append("Alert source: ");
+        sb.append(alert.getSource());
+        sb.append("\n");
 
         if (alert.isActive()) {
             sb.append("\uD83D\uDD14 Notification in ");
