@@ -129,6 +129,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                     }
                     alertClientTime.set(Calendar.YEAR, year);
                     alertClientTime.set(Calendar.MONTH, info.month - 1);
+                    alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
                     refreshState(alertClientTime);
                     return;
                 }
@@ -139,9 +140,9 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
 
                 while (true) {
                     if (DateValidator.isValid(info.day, month, year)) {
-                        alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
-                        alertClientTime.set(Calendar.MONTH, month - 1);
                         alertClientTime.set(Calendar.YEAR, year);
+                        alertClientTime.set(Calendar.MONTH, month - 1);
+                        alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
 
                         if (alertClientTime.getTimeInMillis() > nowClientMillis) {
                             refreshState(alertClientTime);
