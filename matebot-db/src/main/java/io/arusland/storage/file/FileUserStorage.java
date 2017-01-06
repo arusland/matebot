@@ -3,6 +3,7 @@ package io.arusland.storage.file;
 import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import static java.util.stream.Collectors.toList;
  * Created by ruslan on 03.12.2016.
  */
 public class FileUserStorage implements UserStorage, ItemFactory {
+    protected final Logger log = Logger.getLogger(getClass());
     private final static SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
     private final User user;
     private final File root;
@@ -79,12 +81,14 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         AlertInfo alertInfo = AlertInfo.parse(content, getTimeZoneClient());
 
         if (alertInfo != null && alertInfo.valid) {
+            log.info("Parsed alert: " + alertInfo);
             return tryAddAlertItem(path, alertInfo);
         }
 
         NoteInfo noteInfo = NoteInfo.parse(content);
 
         if (noteInfo != null) {
+            log.info("Parsed note: " + noteInfo);
             return tryAddNoteItem(path, noteInfo);
         }
 

@@ -2,12 +2,11 @@ package io.arusland.storage.file;
 
 import io.arusland.storage.*;
 import io.arusland.storage.util.DateValidator;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -16,6 +15,7 @@ import static java.util.stream.Collectors.toList;
  * Created by ruslan on 10.12.2016.
  */
 public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
+    private final static Logger log = Logger.getLogger(FileAlertItem.class);
     private static final int MESSAGE_TITLE_LENGTH = 10;
     private final AlertInfo info;
     private final TimeZoneClient timeZoneClient;
@@ -85,8 +85,8 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         }
 
         Calendar alertClientTime = Calendar.getInstance();
-        alertClientTime.setTime(timeZoneClient.fromClient(alertClientTime.getTime()));
-        long nowMillis = alertClientTime.getTimeInMillis();
+        alertClientTime.setTime(timeZoneClient.toClient(alertClientTime.getTime()));
+        long nowClientMillis = alertClientTime.getTimeInMillis();
         alertClientTime.set(Calendar.SECOND, 0);
         alertClientTime.set(Calendar.MILLISECOND, 0);
         alertClientTime.set(Calendar.HOUR_OF_DAY, info.hour);
@@ -98,7 +98,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
             while (true) {
                 int dayOfWeek = getDayOfWeek(alertClientTime);
 
-                if (alertDays.contains(dayOfWeek) && alertClientTime.getTimeInMillis() > nowMillis) {
+                if (alertDays.contains(dayOfWeek) && alertClientTime.getTimeInMillis() > nowClientMillis) {
                     refreshState(alertClientTime);
                     return;
                 }
@@ -110,22 +110,47 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         if (info.day != null) {
             if (info.month != null) {
                 if (info.year != null) {
+                    // if day, month and year defined
                     alertClientTime.set(Calendar.YEAR, info.year);
                     alertClientTime.set(Calendar.MONTH, info.month - 1);
                     alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
                     refreshState(alertClientTime);
                     return;
                 } else {
+                    // if day and month defined
                     int year = alertClientTime.get(Calendar.YEAR);
                     while (!DateValidator.isValid(info.day, info.month, year)) {
                         year++;
                     }
                     alertClientTime.set(Calendar.YEAR, year);
+                    alertClientTime.set(Calendar.MONTH, info.month - 1);
                     refreshState(alertClientTime);
                     return;
                 }
             } else {
-                // TODO: implement!!!!
+                // if only day defined
+                int year = alertClientTime.get(Calendar.YEAR);
+                int month = alertClientTime.get(Calendar.MONTH) + 1;
+
+                while (true) {
+                    if (DateValidator.isValid(info.day, month, year)) {
+                        alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
+                        alertClientTime.set(Calendar.MONTH, month - 1);
+                        alertClientTime.set(Calendar.YEAR, year);
+
+                        if (alertClientTime.getTimeInMillis() > nowClientMillis) {
+                            refreshState(alertClientTime);
+                            return;
+                        }
+                    }
+
+                    month++;
+
+                    if (month > 12) {
+                        month = 1;
+                        year++;
+                    }
+                }
             }
         }
     }
@@ -143,6 +168,8 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
 
         this.title = newTitle;
         this.nextDate = timeZoneClient.fromClient(clientTime.getTime());
+
+        log.info(this);
     }
 
     private static List<Integer> getAlertDays(int flags) {

@@ -129,7 +129,7 @@ public class CommonCommand extends BaseBotCommand {
                 } else if (addedItem instanceof NoteItem) {
                     handleNoteItem(message.getChatId(), (NoteItem) addedItem);
                 } else {
-                    // TODO: !!!
+                    sendMessage(message.getChatId(), "⚠ unsupported item: " + addedItem);
                 }
             } else {
                 sendMessage(message.getChatId(), "⚠ invalid input");
@@ -165,6 +165,7 @@ public class CommonCommand extends BaseBotCommand {
             return;
         }
 
+        log.warn("Item removing " + addedItem);
         storage.deleteItem(addedItem);
     }
 

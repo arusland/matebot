@@ -48,4 +48,12 @@ public class NoteInfo {
 
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "NoteInfo{" +
+                "content='" + content + '\'' +
+                ", title='" + title + '\'' +
+                '}';
+    }
 }
