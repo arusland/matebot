@@ -45,6 +45,10 @@ public class BotConfig {
         }
     }
 
+    public String getOutputConfigDir() {
+        return getProperty("output.config", "");
+    }
+
     public String getMatebotName() {
         return getProperty("matebot.name");
     }
@@ -158,12 +162,16 @@ public class BotConfig {
 
     /**
      * Create instance of {@link BotConfig} in current user home directory.
-     *
      */
-    public static BotConfig fromUserDir() {
+    public static BotConfig fromUserDir(String configDir) {
+        File file;
 
+        if (StringUtils.isNoneBlank(configDir)) {
+            file = new File(configDir);
+        } else {
+            file = new File(System.getProperty("user.home"), ".matebot");
+        }
 
-        File file = new File(System.getProperty("user.home"), ".matebot");
         if (!file.exists()) {
             file.mkdirs();
         }

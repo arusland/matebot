@@ -42,7 +42,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
     public MateBot(BotConfig configInput) {
         super();
         this.configInput = Validate.notNull(configInput, "configInput");
-        this.configOutput = BotConfig.fromUserDir();
+        this.configOutput = BotConfig.fromUserDir(this.configInput.getOutputConfigDir());
         this.storage = StorageFactory.createStorage(configInput.getMatebotDbRoot(), Collections.emptyMap());
         this.commonCommand = new CommonCommand(this);
         this.alertsRunner = new AlertsRunner(this.storage, new TimeManagement(), new AlertsRunnerHandler(),
