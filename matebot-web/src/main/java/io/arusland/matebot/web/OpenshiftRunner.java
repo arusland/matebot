@@ -33,7 +33,7 @@ public class OpenshiftRunner {
     private static void killProcess(File pidFile) {
         try {
             int pid = Integer.parseInt(new String(Files.readAllBytes(pidFile.toPath())));
-            Runtime.getRuntime().exec("kill " + pid);
+            Runtime.getRuntime().exec("kill -9 " + pid);
         } catch (IOException e) {
             e.printStackTrace();
         }
