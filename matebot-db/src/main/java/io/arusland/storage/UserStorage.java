@@ -37,4 +37,6 @@ public interface UserStorage {
     void setTimeZone(TimeZone timeZone);
 
     TimeZone getTimeZone();
+
+    File createBackFile();
 }

@@ -1,6 +1,7 @@
 package io.arusland.storage.file;
 
 import io.arusland.storage.*;
+import io.arusland.storage.util.ZipUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
@@ -21,6 +22,7 @@ import static java.util.stream.Collectors.toList;
 public class FileUserStorage implements UserStorage, ItemFactory {
     protected final Logger log = Logger.getLogger(getClass());
     private final static SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
+    private final static SimpleDateFormat BACKUP_FILE_NAME_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private final User user;
     private final File root;
     private List<Item> rootItems;
@@ -130,6 +132,20 @@ public class FileUserStorage implements UserStorage, ItemFactory {
     @Override
     public TimeZone getTimeZone() {
         return getTimeZoneClient().getTimeZone();
+    }
+
+    @Override
+    public File createBackFile() {
+        String name = "_" + BACKUP_FILE_NAME_FORMAT.format(getTimeZoneClient().toClient(new Date()));
+        File tempFile = new File(System.getProperty("java.io.tmpdir"), root.getName() + name + ".zip");
+
+        if (tempFile.exists()) {
+            tempFile.delete();
+        }
+
+        ZipUtil.zipDir(Arrays.asList(root), tempFile);
+
+        return tempFile;
     }
 
     private TimeZoneClient getTimeZoneClient() {
