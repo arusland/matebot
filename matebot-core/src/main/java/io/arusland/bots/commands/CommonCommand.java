@@ -224,7 +224,7 @@ public class CommonCommand extends BaseBotCommand {
                 getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
 
                 StringBuilder sb = new StringBuilder("Are you sure to remove note '");
-                sb.append(note.getTitle());
+                sb.append(note.getContent());
                 sb.append("'?\n❌");
                 sb.append(removeFile);
                 sb.append(" ✅");
@@ -244,6 +244,19 @@ public class CommonCommand extends BaseBotCommand {
         sb.append(DATETIME_FORMAT.format(getContext().toClient(user, note.getModifiedDate())));
         sb.append("\n");
         sb.append(note.getContent());
+
+        String removeFile = "/remove";
+        String cancelOperation = "/cancel";
+
+        getContext().clearShortcutCommands(user);
+        getContext().addShortcutCommand(user, removeFile, "rm", note.getFullPath(), "0");
+        getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
+
+        sb.append("\n\n❌");
+        sb.append(removeFile);
+        sb.append(" ✅");
+        sb.append(cancelOperation);
+        sb.append("\n");
 
         sendMessage(chatId, sb.toString());
     }
@@ -271,6 +284,20 @@ public class CommonCommand extends BaseBotCommand {
         } else {
             sb.append("❌ Not active");
         }
+
+        String removeFile = "/remove";
+        String cancelOperation = "/cancel";
+
+        getContext().clearShortcutCommands(user);
+        getContext().addShortcutCommand(user, removeFile, "rm", alert.getFullPath(), "0");
+        getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
+
+        sb.append("\n\n❌");
+        sb.append(removeFile);
+        sb.append(" ✅");
+        sb.append(cancelOperation);
+        sb.append("\n");
+
         sendMessage(chatId, sb.toString());
     }
 
@@ -300,7 +327,7 @@ public class CommonCommand extends BaseBotCommand {
                 getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
 
                 StringBuilder sb = new StringBuilder("Are you sure to remove alert '");
-                sb.append(alert.getTitle());
+                sb.append(alert.getSource());
                 sb.append("'?\n❌");
                 sb.append(removeFile);
                 sb.append(" ✅");
