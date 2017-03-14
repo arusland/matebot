@@ -219,7 +219,6 @@ public class CommonCommand extends BaseBotCommand {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
 
-                getContext().clearShortcutCommands(user);
                 getContext().addShortcutCommand(user, removeFile, "rm", note.getFullPath(), "1");
                 getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
 
@@ -248,7 +247,6 @@ public class CommonCommand extends BaseBotCommand {
         String removeFile = "/remove";
         String cancelOperation = "/cancel";
 
-        getContext().clearShortcutCommands(user);
         getContext().addShortcutCommand(user, removeFile, "rm", note.getFullPath(), "0");
         getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
 
@@ -288,7 +286,6 @@ public class CommonCommand extends BaseBotCommand {
         String removeFile = "/remove";
         String cancelOperation = "/cancel";
 
-        getContext().clearShortcutCommands(user);
         getContext().addShortcutCommand(user, removeFile, "rm", alert.getFullPath(), "0");
         getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
 
@@ -322,7 +319,6 @@ public class CommonCommand extends BaseBotCommand {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
 
-                getContext().clearShortcutCommands(user);
                 getContext().addShortcutCommand(user, removeFile, "rm", alert.getFullPath(), "1");
                 getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
 
@@ -350,7 +346,6 @@ public class CommonCommand extends BaseBotCommand {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
 
-                getContext().clearShortcutCommands(user);
                 getContext().addShortcutCommand(user, removeFile, "rm", item.getFullPath(), "1");
                 getContext().addShortcutCommand(user, cancelOperation, "cd", item.getParentPath());
 
