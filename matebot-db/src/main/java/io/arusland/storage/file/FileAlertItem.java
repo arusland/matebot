@@ -124,14 +124,20 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                 } else {
                     // if day and month defined
                     int year = alertClientTime.get(Calendar.YEAR);
-                    while (!DateValidator.isValid(info.day, info.month, year)) {
+
+                    while (true) {
+                        if (DateValidator.isValid(info.day, info.month, year)) {
+                            alertClientTime.set(Calendar.YEAR, year);
+                            alertClientTime.set(Calendar.MONTH, info.month - 1);
+                            alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
+
+                            if (alertClientTime.getTimeInMillis() > nowClientMillis) {
+                                refreshState(alertClientTime);
+                                return;
+                            }
+                        }
                         year++;
                     }
-                    alertClientTime.set(Calendar.YEAR, year);
-                    alertClientTime.set(Calendar.MONTH, info.month - 1);
-                    alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
-                    refreshState(alertClientTime);
-                    return;
                 }
             } else {
                 // if only day defined

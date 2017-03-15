@@ -146,11 +146,10 @@ public class CommonCommand extends BaseBotCommand {
     }
 
     private void handleAlertItem(Long chatId, AlertItem addedItem, UserStorage storage, User user) {
-        long diff = addedItem.nextTime().getTime() - System.currentTimeMillis();
+        Date nextTime = addedItem.nextTime();
+        long diff = nextTime.getTime() - System.currentTimeMillis();
 
         if (diff > 0) {
-            Date nextTime = addedItem.nextTime();
-
             StringBuilder sb = new StringBuilder();
             sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
@@ -165,7 +164,7 @@ public class CommonCommand extends BaseBotCommand {
             return;
         }
 
-        log.warn("Item removing " + addedItem);
+        log.warn("Item removing " + addedItem + "; next time is " + nextTime);
         storage.deleteItem(addedItem);
     }
 
