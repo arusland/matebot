@@ -18,6 +18,11 @@ public interface TimeZoneClient {
     Date toClient(Date localTime);
 
     /**
+     * Format local time as client time.
+     */
+    String format(Date localTime);
+
+    /**
      * Current time zone.
      */
     TimeZone getTimeZone();

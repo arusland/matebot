@@ -13,6 +13,7 @@ import java.util.TimeZone;
 public class TimeZoneClientStandard implements TimeZoneClient {
     private final SimpleDateFormat sdfClient = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private final SimpleDateFormat sdfLocal = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public synchronized Date fromClient(Date clientTime) {
@@ -30,6 +31,11 @@ public class TimeZoneClientStandard implements TimeZoneClient {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public synchronized String format(Date localTime) {
+        return DATETIME_FORMAT.format(toClient(localTime));
     }
 
     @Override

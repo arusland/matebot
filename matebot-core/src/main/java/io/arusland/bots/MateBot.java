@@ -294,7 +294,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
         if (adminId > 0) {
             TimeZoneClient client = getTimeZoneClient(adminId);
-            sendMessage((long)adminId, "Matebot started at " + client.toClient(new Date()));
+            sendMessage((long)adminId, "Matebot started at " + client.format(new Date()));
         }
     }
 }
