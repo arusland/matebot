@@ -12,3 +12,4 @@
 /dist/matedb_
 /matebot-web/target
 /matebot-web/*.iml
+/dist/matebot.jar

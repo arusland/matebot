@@ -61,6 +61,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         log.info("Db directory - " + configInput.getMatebotDbRoot());
         ProcessUtil.writePIDSafe(new File("./logs"));
         rerunAlerts();
+        sendHelloMessage();
     }
 
     public static void main(String[] args) {
@@ -286,5 +287,14 @@ public class MateBot extends BaseCommandBot implements BotContext {
         }
 
         return TimeZoneClientStandard.create(timeZone);
+    }
+
+    private void sendHelloMessage() {
+        int adminId = configInput.getSingleUserId();
+
+        if (adminId > 0) {
+            TimeZoneClient client = getTimeZoneClient(adminId);
+            sendMessage((long)adminId, "Matebot started at " + client.toClient(new Date()));
+        }
     }
 }
