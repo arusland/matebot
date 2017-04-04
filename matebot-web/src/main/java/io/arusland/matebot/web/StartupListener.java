@@ -20,7 +20,7 @@ public class StartupListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent ev) {
         log.info("Bot session starting...");
         // every 5 hours restart the bot
-        timer.schedule(new MatebotTimerTask(), 1000, 5*60*60*1000);
+        timer.schedule(new MatebotTimerTask(), 1000, 8*60*60*1000);
     }
 
     private class MatebotTimerTask extends TimerTask {
