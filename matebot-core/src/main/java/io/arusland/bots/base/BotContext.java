@@ -41,21 +41,21 @@ public interface BotContext {
     /**
      * Adds shortcut for command with arguments for specified user.
      *
-     * @param user     User.
+     * @param userId     User id.
      * @param shortcut Shortcut for command, e.g. <code>/ls</code>.
      * @param cmd      Command.
      * @param args     Command's arguments. Could be empty.
      */
-    void addShortcutCommand(User user, String shortcut, String cmd, String... args);
+    void addShortcutCommand(Integer userId, String shortcut, String cmd, String... args);
 
     /**
      * Gets command with arguments.
      *
-     * @param user     User.
+     * @param userId     User id.
      * @param shortcut Shortcut for command.
      * @return Shortcut command.
      */
-    ShortcutCommand getShortcutCommand(User user, String shortcut);
+    ShortcutCommand getShortcutCommand(Integer userId, String shortcut);
 
     /**
      * Clear shortcut commands.

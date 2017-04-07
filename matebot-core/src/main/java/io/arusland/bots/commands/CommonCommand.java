@@ -109,7 +109,7 @@ public class CommonCommand extends BaseBotCommand {
 
     private void handleTextMessage(Update update, Message message, User user, UserStorage storage) {
         if (message.getText().startsWith(BotCommand.COMMAND_INIT_CHARACTER)) {
-            ShortcutCommand cmd = getContext().getShortcutCommand(user, message.getText());
+            ShortcutCommand cmd = getContext().getShortcutCommand(user.getId(), message.getText());
 
             if (cmd != null) {
                 handleShortcutCommand(cmd, user, update.getMessage().getChatId(), update, storage);
@@ -218,8 +218,8 @@ public class CommonCommand extends BaseBotCommand {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
 
-                getContext().addShortcutCommand(user, removeFile, "rm", note.getFullPath(), "1");
-                getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
+                getContext().addShortcutCommand(user.getId(), removeFile, "rm", note.getFullPath(), "1");
+                getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", note.getParentPath());
 
                 StringBuilder sb = new StringBuilder("Are you sure to remove note '");
                 sb.append(note.getContent());
@@ -246,8 +246,8 @@ public class CommonCommand extends BaseBotCommand {
         String removeFile = "/remove";
         String cancelOperation = "/cancel";
 
-        getContext().addShortcutCommand(user, removeFile, "rm", note.getFullPath(), "0");
-        getContext().addShortcutCommand(user, cancelOperation, "cd", note.getParentPath());
+        getContext().addShortcutCommand(user.getId(), removeFile, "rm", note.getFullPath(), "0");
+        getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", note.getParentPath());
 
         sb.append("\n\n❌");
         sb.append(removeFile);
@@ -285,8 +285,8 @@ public class CommonCommand extends BaseBotCommand {
         String removeFile = "/remove";
         String cancelOperation = "/cancel";
 
-        getContext().addShortcutCommand(user, removeFile, "rm", alert.getFullPath(), "0");
-        getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
+        getContext().addShortcutCommand(user.getId(), removeFile, "rm", alert.getFullPath(), "0");
+        getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", alert.getParentPath());
 
         sb.append("\n\n❌");
         sb.append(removeFile);
@@ -318,8 +318,8 @@ public class CommonCommand extends BaseBotCommand {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
 
-                getContext().addShortcutCommand(user, removeFile, "rm", alert.getFullPath(), "1");
-                getContext().addShortcutCommand(user, cancelOperation, "cd", alert.getParentPath());
+                getContext().addShortcutCommand(user.getId(), removeFile, "rm", alert.getFullPath(), "1");
+                getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", alert.getParentPath());
 
                 StringBuilder sb = new StringBuilder("Are you sure to remove alert '");
                 sb.append(alert.getSource());
@@ -345,8 +345,8 @@ public class CommonCommand extends BaseBotCommand {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
 
-                getContext().addShortcutCommand(user, removeFile, "rm", item.getFullPath(), "1");
-                getContext().addShortcutCommand(user, cancelOperation, "cd", item.getParentPath());
+                getContext().addShortcutCommand(user.getId(), removeFile, "rm", item.getFullPath(), "1");
+                getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", item.getParentPath());
 
                 StringBuilder sb = new StringBuilder("Are you sure to remove item '");
                 sb.append(item.getFullPath());

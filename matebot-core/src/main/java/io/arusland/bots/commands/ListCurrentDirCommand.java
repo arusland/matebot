@@ -99,10 +99,10 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         sb.append("\n");
 
         if (note.isDirectory()) {
-            getContext().addShortcutCommand(user, changeDirShortcut, "cd", note.getFullPath());
+            getContext().addShortcutCommand(user.getId(), changeDirShortcut, "cd", note.getFullPath());
         } else {
-            getContext().addShortcutCommand(user, changeDirShortcut, "dl", note.getFullPath());
-            getContext().addShortcutCommand(user, removeFileShortcut, "rm", note.getFullPath());
+            getContext().addShortcutCommand(user.getId(), changeDirShortcut, "dl", note.getFullPath());
+            getContext().addShortcutCommand(user.getId(), removeFileShortcut, "rm", note.getFullPath());
         }
     }
 
@@ -130,10 +130,10 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         sb.append("\n");
 
         if (alert.isDirectory()) {
-            getContext().addShortcutCommand(user, changeDirShortcut, "cd", alert.getFullPath());
+            getContext().addShortcutCommand(user.getId(), changeDirShortcut, "cd", alert.getFullPath());
         } else {
-            getContext().addShortcutCommand(user, changeDirShortcut, "dl", alert.getFullPath());
-            getContext().addShortcutCommand(user, removeFileShortcut, "rm", alert.getFullPath());
+            getContext().addShortcutCommand(user.getId(), changeDirShortcut, "dl", alert.getFullPath());
+            getContext().addShortcutCommand(user.getId(), removeFileShortcut, "rm", alert.getFullPath());
         }
     }
 
@@ -159,10 +159,10 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         sb.append("\n");
 
         if (item.isDirectory()) {
-            getContext().addShortcutCommand(user, changeDirShortcut, "cd", item.getFullPath());
+            getContext().addShortcutCommand(user.getId(), changeDirShortcut, "cd", item.getFullPath());
         } else {
-            getContext().addShortcutCommand(user, changeDirShortcut, "dl", item.getFullPath());
-            getContext().addShortcutCommand(user, removeFileShortcut, "rm", item.getFullPath());
+            getContext().addShortcutCommand(user.getId(), changeDirShortcut, "dl", item.getFullPath());
+            getContext().addShortcutCommand(user.getId(), removeFileShortcut, "rm", item.getFullPath());
         }
     }
 }

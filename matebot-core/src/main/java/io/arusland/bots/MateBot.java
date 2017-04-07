@@ -215,20 +215,20 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     @Override
-    public void addShortcutCommand(User user, String shortcut, String cmd, String... args) {
-        ShortcutCommand shcmd = getShortcutCommand(user, shortcut);
+    public void addShortcutCommand(Integer userId, String shortcut, String cmd, String... args) {
+        ShortcutCommand shcmd = getShortcutCommand(userId, shortcut);
 
         if (shcmd != null) {
             shortcutCommands.remove(shcmd);
         }
 
-        shortcutCommands.add(new ShortcutCommand(user.getId(), shortcut, cmd, args));
+        shortcutCommands.add(new ShortcutCommand(userId, shortcut, cmd, args));
     }
 
     @Override
-    public ShortcutCommand getShortcutCommand(User user, String shortcut) {
+    public ShortcutCommand getShortcutCommand(Integer userId, String shortcut) {
         return shortcutCommands.stream()
-                .filter(p -> p.getUserId().equals(user.getId()) && p.getShortcut().equals(shortcut))
+                .filter(p -> p.getUserId().equals(userId) && p.getShortcut().equals(shortcut))
                 .findFirst()
                 .orElseGet(() -> null);
     }
@@ -271,11 +271,23 @@ public class MateBot extends BaseCommandBot implements BotContext {
             long chatId = configOutput.getUserChatId(userId);
 
             if (chatId > 0) {
+                StringBuilder sb = new StringBuilder();
+                String removeFile = "/remove";
+
                 if (StringUtils.isNoneBlank(alertItem.getMessage())) {
-                    sendMessage(chatId, "ALERT: " + alertItem.getMessage());
+                    sb.append("ALERT: " + alertItem.getMessage());
                 } else {
-                    sendMessage(chatId, "ALERT!!!");
+                    sb.append("ALERT!!!");
                 }
+
+                sb.append("\n\n❌");
+                sb.append(removeFile);
+                sb.append("\n");
+
+                addShortcutCommand((int) ((long)userId), removeFile, "rm", alertItem.getFullPath(), "0");
+
+
+                sendMessage(chatId, sb.toString());
             }
         }
     }
