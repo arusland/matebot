@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private final static Logger log = Logger.getLogger(FileAlertItem.class);
-    private static final int MESSAGE_TITLE_LENGTH = 10;
+    private static final int MESSAGE_TITLE_LENGTH = 40;
     private final AlertInfo info;
     private final TimeZoneClient timeZoneClient;
     private Date nextDate;
