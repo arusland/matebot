@@ -14,9 +14,12 @@ import org.apache.log4j.Logger;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
+import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.BotSession;
 
@@ -284,7 +287,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
                 sb.append(removeFile);
                 sb.append("\n");
 
-                addShortcutCommand((int) ((long)userId), removeFile, "rm", alertItem.getFullPath(), "0");
+                addShortcutCommand((int) ((long) userId), removeFile, "rm", alertItem.getFullPath(), "0");
 
 
                 sendMessage(chatId, sb.toString());
@@ -307,7 +310,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
         if (adminId > 0) {
             TimeZoneClient client = getTimeZoneClient(adminId);
-            sendMessage((long)adminId, "Matebot started at " + client.format(new Date()));
+            sendMessage((long) adminId, "Matebot started at " + client.format(new Date()));
         }
     }
 }

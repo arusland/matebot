@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.bots.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.bots.commands.BotCommand;
@@ -105,6 +107,7 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
         try {
             log.info("Sending message: " + sendMessage);
 
+            applyKeyboard(sendMessage);
             sendMessage(sendMessage);
         } catch (TelegramApiException e) {
             log.error(e.getMessage(), e);
@@ -118,6 +121,26 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
         sendMessage.setText(message);
 
         sendMessage(chatId, sendMessage);
+    }
+
+    private void applyKeyboard(SendMessage sendMessage) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboad(false);
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        // Первая строчка клавиатуры
+        KeyboardRow keyboardFirstRow = new KeyboardRow(); // Добавляем кнопки в первую строчку клавиатуры
+        keyboardFirstRow.add("/alerts");
+        keyboardFirstRow.add("/notes");
+
+
+        // Добавляем все строчки клавиатуры в список
+        keyboard.add(keyboardFirstRow);
+        replyKeyboardMarkup.setKeyboard(keyboard);
     }
 
     protected abstract void processNonCommandUpdate(Update update);
