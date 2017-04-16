@@ -127,7 +127,9 @@ public class CommonCommand extends BaseBotCommand {
                 if (addedItem instanceof AlertItem) {
                     handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage, user);
                 } else if (addedItem instanceof NoteItem) {
-                    handleNoteItem(message.getChatId(), (NoteItem) addedItem);
+                    NoteItem noteItem = (NoteItem) addedItem;
+                    boolean noteUpdated = msg.length() < noteItem.getContent().length();
+                    handleNoteItem(message.getChatId(), noteItem, noteUpdated);
                 } else {
                     sendMessage(message.getChatId(), "⚠ unsupported item: " + addedItem);
                 }
@@ -137,9 +139,13 @@ public class CommonCommand extends BaseBotCommand {
         }
     }
 
-    private void handleNoteItem(Long chatId, NoteItem note) {
+    private void handleNoteItem(Long chatId, NoteItem note, boolean noteUpdated) {
         StringBuilder sb = new StringBuilder();
-        sb.append("✅ Note added!\n");
+        if (noteUpdated) {
+            sb.append("✅ Note updated!\n");
+        } else {
+            sb.append("✅ Note added!\n");
+        }
         sb.append("Title: " + note.getTitle());
 
         sendMessage(chatId, sb.toString());

@@ -72,7 +72,7 @@ public class AlertItemTest {
         assertEquals("/alerts/" + alert.getName(), alert.getFullPath());
         assertEquals("Go home, stop coding!", alert.getMessage());
         assertEquals(alertTime.getTime(), alert.nextTime());
-        assertEquals(String.format("23:58 %02d:%02d:%d Go home...", alertTime.get(Calendar.DAY_OF_MONTH),
+        assertEquals(String.format("23:58 %02d:%02d:%d Go home, stop coding!", alertTime.get(Calendar.DAY_OF_MONTH),
                 alertTime.get(Calendar.MONTH) + 1, alertTime.get(Calendar.YEAR)), alert.getTitle());
     }
 

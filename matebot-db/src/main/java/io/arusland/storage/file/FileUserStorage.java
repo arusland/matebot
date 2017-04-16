@@ -313,17 +313,44 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         }
 
         if (parent != null) {
-            String name = generateNoteFileName();
-            File file = new File(parent.getFile(), name);
+            List<FileNoteItem> children = parent.listItems();
+            Optional<FileNoteItem> withTheSameName = children.stream()
+                    .filter(p -> p.getTitle()
+                    .equals(info.title))
+                    .findFirst();
 
-            try {
-                FileUtils.writeStringToFile(file, info.content, "UTF-8");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if (withTheSameName.isPresent()) {
+                FileNoteItem fitem = withTheSameName.get();
+                File file = fitem.getFile();
+                StringBuilder sb  = new StringBuilder(fitem.getContent());
+                sb.append("\n\n");
+                sb.append(info.content);
+
+                NoteInfo infoNew  = NoteInfo.parse(sb.toString());
+
+                try {
+                    FileUtils.writeStringToFile(file, infoNew.content, "UTF-8");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                log.info("Note updated: " + fitem.getTitle());
+
+                ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
+                return new FileNoteItem(user, file, itemPath, infoNew, this);
+            } else {
+                String name = generateNoteFileName();
+                File file = new File(parent.getFile(), name);
+
+                try {
+                    FileUtils.writeStringToFile(file, info.content, "UTF-8");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
+                return new FileNoteItem(user, file, itemPath, info, this);
             }
-
-            ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-            return new FileNoteItem(user, file, itemPath, info, this);
         }
 
         return null;

@@ -62,7 +62,11 @@ public class FileItem<T extends Item> implements Item<T>, Comparator<Item> {
     }
 
     public long getSize() {
-        return file.length();
+        if (file.isFile()) {
+            return file.length();
+        }
+
+        return 0L;
     }
 
     public boolean isDirectory() {

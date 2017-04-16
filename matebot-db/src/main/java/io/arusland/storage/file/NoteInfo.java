@@ -10,7 +10,7 @@ import java.util.Arrays;
  * Created by ruslan on 24.12.2016.
  */
 public class NoteInfo {
-    private static final int MAX_TITLE_SIZE = 20;
+    private static final int MAX_TITLE_SIZE = 40;
     public final String content;
     public final String title;
 
@@ -32,15 +32,15 @@ public class NoteInfo {
                 .orElseGet(() -> -1);
 
         String title = index >= 0 && index < content.length() ? content.substring(0, index) : "";
-        title = title.replaceAll("[\r\n]+", "");
+        title = title.replaceAll("[\r\n]+", "").trim();
 
         if (StringUtils.isBlank(title)) {
-            title = content.substring(0, Math.min(content.length(), MAX_TITLE_SIZE));
+            title = content.substring(0, Math.min(content.length(), MAX_TITLE_SIZE)).trim();
         }
 
         if (StringUtils.isNoneBlank(title)) {
             if (title.length() > MAX_TITLE_SIZE) {
-                title = title.substring(0, MAX_TITLE_SIZE);
+                title = title.substring(0, MAX_TITLE_SIZE).trim();
             }
 
             return new NoteInfo(title, content);
