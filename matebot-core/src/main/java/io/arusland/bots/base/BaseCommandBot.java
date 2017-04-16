@@ -20,6 +20,7 @@ import java.util.*;
  */
 public abstract class BaseCommandBot extends TelegramLongPollingBot {
     protected final Logger log = Logger.getLogger(getClass());
+    protected final int TEXT_MESSAGE_MAX_LENGTH = 4096;
     private final Map<String, BaseBotCommand> commandsMap = new HashMap<>();
 
     public BaseCommandBot() {
@@ -115,12 +116,19 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
     }
 
     public void sendMessage(Long chatId, String message) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.enableMarkdown(false);
-        sendMessage.setChatId(chatId.toString());
-        sendMessage.setText(message);
+        if (message.length() > TEXT_MESSAGE_MAX_LENGTH) {
+            String part1 = message.substring(0, TEXT_MESSAGE_MAX_LENGTH);
+            sendMessage(chatId, part1);
+            String part2 = message.substring(TEXT_MESSAGE_MAX_LENGTH);
+            sendMessage(chatId, part2);
+        } else {
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.enableMarkdown(false);
+            sendMessage.setChatId(chatId.toString());
+            sendMessage.setText(message);
 
-        sendMessage(chatId, sendMessage);
+            sendMessage(chatId, sendMessage);
+        }
     }
 
     private void applyKeyboard(SendMessage sendMessage) {
