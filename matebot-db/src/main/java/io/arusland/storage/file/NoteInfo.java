@@ -43,6 +43,16 @@ public class NoteInfo {
                 title = title.substring(0, MAX_TITLE_SIZE).trim();
             }
 
+            index = title.indexOf(" http");
+
+            if (index > 0) {
+                String newTitle = title.substring(0, index).trim();
+
+                if (!newTitle.isEmpty()) {
+                    title = newTitle;
+                }
+            }
+
             return new NoteInfo(title, content);
         }
 
