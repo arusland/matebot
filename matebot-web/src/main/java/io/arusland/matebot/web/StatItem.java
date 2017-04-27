@@ -9,9 +9,11 @@ import java.util.Date;
 public class StatItem {
     private final Date time;
     private final String agent;
+    private final String ip;
 
-    public StatItem(Date time, String agent) {
+    public StatItem(Date time, String ip, String agent) {
         this.time = time;
+        this.ip = ip;
         this.agent = agent;
     }
 
@@ -23,11 +25,16 @@ public class StatItem {
         return agent;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     @Override
     public String toString() {
         return "StatItem{" +
                 "time=" + time +
                 ", agent='" + agent + '\'' +
+                ", ip='" + ip + '\'' +
                 '}';
     }
 }

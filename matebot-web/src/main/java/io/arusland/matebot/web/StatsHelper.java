@@ -19,7 +19,7 @@ public class StatsHelper {
             agent = request.getHeader("User-agent");
         }
 
-        items.add(new StatItem(new Date(), agent));
+        items.add(0, new StatItem(new Date(), request.getRemoteAddr(), agent));
     }
 
     public List<StatItem> getItems() {
