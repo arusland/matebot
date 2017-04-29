@@ -24,6 +24,33 @@ public class NoteInfo {
      */
     public static NoteInfo parse(String content) {
         content = StringUtils.defaultString(content, "").trim();
+        String title = makeTitleByDelimiter(content);
+
+        if (StringUtils.isBlank(title)) {
+            title = makeTitleByContent(content);
+        }
+
+        if (StringUtils.isNoneBlank(title)) {
+            return new NoteInfo(title, content);
+        }
+
+        return null;
+    }
+
+    private static String makeTitleByContent(String content) {
+        String pureContent = content.replaceAll("[\r\n]+", " ").trim();
+        String title = pureContent.length() > MAX_TITLE_SIZE ?
+            pureContent.substring(0, MAX_TITLE_SIZE).trim() : pureContent;
+        int index = pureContent.indexOf(" http");
+
+        if (index > 0 && index < pureContent.length()) {
+            title = title.substring(0, index).trim();
+        }
+
+        return title;
+    }
+
+    private static String makeTitleByDelimiter(String content) {
         int indexSemicolon = content.indexOf(';');
         int indexLine = content.indexOf('\n');
         int index = Arrays.asList(indexLine, indexSemicolon).stream()
@@ -31,32 +58,9 @@ public class NoteInfo {
                 .min(Integer::compareTo)
                 .orElseGet(() -> -1);
 
-        String title = index >= 0 && index < content.length() ? content.substring(0, index) : "";
-        title = title.replaceAll("[\r\n]+", "").trim();
-
-        if (StringUtils.isBlank(title)) {
-            title = content.substring(0, Math.min(content.length(), MAX_TITLE_SIZE)).trim();
-        }
-
-        if (StringUtils.isNoneBlank(title)) {
-            if (title.length() > MAX_TITLE_SIZE) {
-                title = title.substring(0, MAX_TITLE_SIZE).trim();
-            }
-
-            index = title.indexOf(" http");
-
-            if (index > 0) {
-                String newTitle = title.substring(0, index).trim();
-
-                if (!newTitle.isEmpty()) {
-                    title = newTitle;
-                }
-            }
-
-            return new NoteInfo(title, content);
-        }
-
-        return null;
+        return index >= 0 && index < content.length()
+                ? content.substring(0, index).replaceAll("[\r\n]+", " ").trim()
+                : "";
     }
 
     @Override
