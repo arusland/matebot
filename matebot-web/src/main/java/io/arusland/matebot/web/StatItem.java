@@ -1,5 +1,6 @@
 package io.arusland.matebot.web;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -7,6 +8,7 @@ import java.util.Date;
  * @since 2017-04-25
  */
 public class StatItem {
+    private final static SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private final Date time;
     private final String agent;
     private final String ip;
@@ -27,6 +29,10 @@ public class StatItem {
 
     public String getIp() {
         return ip;
+    }
+
+    public String formatTime() {
+        return SDF.format(time);
     }
 
     @Override
