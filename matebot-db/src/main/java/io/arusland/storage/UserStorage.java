@@ -26,6 +26,8 @@ public interface UserStorage {
 
     Item addItem(String path, String name, File content);
 
+    Item moveItem(String itemPathFrom, String targetDirTo);
+
     /**
      * Automatically add in the right place.
      * @param name Target file name.

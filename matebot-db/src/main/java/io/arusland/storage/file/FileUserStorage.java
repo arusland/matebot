@@ -8,12 +8,14 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static io.arusland.storage.ItemType.ALERTS;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -114,6 +116,22 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         }
 
         return addItemIntoParentItem(name, file, parent);
+    }
+
+    @Override
+    public Item moveItem(String pathFrom, String pathTo) {
+        FileItem item = getFileItemByPath(pathFrom, false);
+        FileItem pathTarget = getFileItemByPath(pathTo, true);
+        File targetFile = new File(pathTarget.getFile(), item.getName());
+        String targetFilePath = pathTarget.getFullPath() + "/" + item.getName();
+
+        try {
+            Files.move(item.getFile().toPath(), targetFile.toPath(), REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return getItemByPath(targetFilePath);
     }
 
     @Override

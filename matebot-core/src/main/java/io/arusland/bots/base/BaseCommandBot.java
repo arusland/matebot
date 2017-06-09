@@ -123,7 +123,7 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
             sendMessage(chatId, part2);
         } else {
             SendMessage sendMessage = new SendMessage();
-            sendMessage.enableMarkdown(false);
+            sendMessage.enableMarkdown(true);
             sendMessage.setChatId(chatId.toString());
             sendMessage.setText(message);
 

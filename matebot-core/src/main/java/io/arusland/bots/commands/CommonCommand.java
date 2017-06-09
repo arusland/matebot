@@ -10,6 +10,7 @@ import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.api.methods.GetFile;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.File;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
@@ -20,6 +21,7 @@ import org.telegram.telegrambots.bots.commands.BotCommand;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Handle shortcut commands, file operations.
@@ -29,6 +31,8 @@ import java.util.Date;
 public class CommonCommand extends BaseBotCommand {
     private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
     private final static DateFormat DATETIME_FORMAT = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+    private boolean creatingNewDirectory;
+    private Item moveFileFrom;
 
     public CommonCommand(BotContext context) {
         super("common", "This command not visible in menu!", context);
@@ -120,22 +124,35 @@ public class CommonCommand extends BaseBotCommand {
         String msg = message.getText().trim();
 
         if (StringUtils.isNoneBlank(msg)) {
-            String currentPath = getCurrentPath(user);
-            Item addedItem = storage.addItem(currentPath, msg);
+            if (creatingNewDirectory && moveFileFrom != null) {
+                Item targetRoot = storage.getItemByPath(moveFileFrom.getType());
 
-            if (addedItem != null) {
-                if (addedItem instanceof AlertItem) {
-                    handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage, user);
-                } else if (addedItem instanceof NoteItem) {
-                    NoteItem noteItem = (NoteItem) addedItem;
-                    boolean noteUpdated = msg.length() < noteItem.getContent().length();
-                    handleNoteItem(message.getChatId(), noteItem, noteUpdated);
-                } else {
-                    sendMessage(message.getChatId(), "⚠ unsupported item: " + addedItem);
+                if (targetRoot != null) {
+                    String targetPath = targetRoot.getFullPath() + "/" + msg;
+                    storage.moveItem(moveFileFrom.getFullPath(), targetPath);
                 }
             } else {
-                sendMessage(message.getChatId(), "⚠ invalid input");
+                handleTextMessageInternal(message, user, storage, msg);
             }
+        }
+    }
+
+    private void handleTextMessageInternal(Message message, User user, UserStorage storage, String msg) {
+        String currentPath = getCurrentPath(user);
+        Item addedItem = storage.addItem(currentPath, msg);
+
+        if (addedItem != null) {
+            if (addedItem instanceof AlertItem) {
+                handleAlertItem(message.getChatId(), (AlertItem) addedItem, storage, user);
+            } else if (addedItem instanceof NoteItem) {
+                NoteItem noteItem = (NoteItem) addedItem;
+                boolean noteUpdated = msg.length() < noteItem.getContent().length();
+                handleNoteItem(message.getChatId(), noteItem, noteUpdated);
+            } else {
+                sendMessage(message.getChatId(), "⚠ unsupported item: " + addedItem);
+            }
+        } else {
+            sendMessage(message.getChatId(), "⚠ invalid input");
         }
     }
 
@@ -176,12 +193,14 @@ public class CommonCommand extends BaseBotCommand {
 
     private void handleShortcutCommand(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage) {
         if (cmd.hasArguments()) {
-            if ("cd".equals(cmd.getCommand())) {
-                getContext().setCurrentDir(user, cmd.getArguments().get(0));
+            List<String> args = cmd.getArguments();
+            String command = cmd.getCommand();
+            if ("cd".equals(command)) {
+                getContext().setCurrentDir(user, args.get(0));
                 getContext().listCurrentDir(update);
 
-            } else if ("dl".equals(cmd.getCommand())) {
-                Item item = storage.getItemByPath(cmd.getArguments().get(0));
+            } else if ("dl".equals(command)) {
+                Item item = storage.getItemByPath(args.get(0));
 
                 if (item != null) {
                     if (item instanceof AlertItem) {
@@ -191,9 +210,11 @@ public class CommonCommand extends BaseBotCommand {
                     } else {
                         handleDownloadingCommonItem(chatId, item);
                     }
+                } else {
+                    sendMessage(chatId, "File not found!");
                 }
-            } else if ("rm".equals(cmd.getCommand())) {
-                Item item = storage.getItemByPath(cmd.getArguments().get(0));
+            } else if ("rm".equals(command)) {
+                Item item = storage.getItemByPath(args.get(0));
 
                 if (item != null) {
                     if (item instanceof AlertItem) {
@@ -203,10 +224,38 @@ public class CommonCommand extends BaseBotCommand {
                     } else {
                         handleRemovingCommonItem(cmd, user, chatId, update, storage, item);
                     }
+                } else {
+                    sendMessage(chatId, "File not found!");
                 }
-            } else if ("mv".equals(cmd.getCommand())) {
-                // move file
-                sendMessage(chatId, "TODO: Moving item: " + cmd.getArguments());
+            } else if ("mv".equals(command)) {
+                Item item = storage.getItemByPath(args.get(0));
+
+                if (item != null) {
+                    if (!(item instanceof AlertItem)) {
+                        if (args.size() > 1) {
+
+                        } else {
+                            String newDir = "/new";
+                            List<Item> rootItems = storage.listItems(item.getType());
+                            StringBuilder sb = new StringBuilder();
+
+                            for (Item subItem : rootItems) {
+                                sb.append(subItem.getTitle());
+                                sb.append("\n");
+                            }
+                            sb.append(newDir);
+                            sendMessage(chatId, sb.toString());
+
+                            getContext().addShortcutCommand(user.getId(), newDir, "newdir", item.getFullPath());
+                        }
+                    }
+                } else {
+                    sendMessage(chatId, "File not found!");
+                }
+            } else if ("newdir".equals(command)) {
+                sendMessage(chatId, "*Enter new directory name:*");
+                creatingNewDirectory = true;
+                moveFileFrom = storage.getItemByPath(args.get(0));
             } else {
                 log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
             }
@@ -251,14 +300,18 @@ public class CommonCommand extends BaseBotCommand {
 
         String removeFile = "/remove";
         String cancelOperation = "/cancel";
+        String moveOperation = "/move";
 
         getContext().addShortcutCommand(user.getId(), removeFile, "rm", note.getFullPath(), "0");
         getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", note.getParentPath());
+        getContext().addShortcutCommand(user.getId(), moveOperation, "mv", note.getFullPath());
 
         sb.append("\n\n❌");
         sb.append(removeFile);
         sb.append(" ✅");
         sb.append(cancelOperation);
+        sb.append(" ➡️");
+        sb.append(moveOperation);
         sb.append("\n");
 
         sendMessage(chatId, sb.toString());
