@@ -126,6 +126,7 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         String targetFilePath = pathTarget.getFullPath() + "/" + item.getName();
 
         try {
+            log.info(String.format("Moving from '%s' to '%s'", item.getFile(), targetFile));
             Files.move(item.getFile().toPath(), targetFile.toPath(), REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -177,6 +178,10 @@ public class FileUserStorage implements UserStorage, ItemFactory {
     @Override
     public Optional<Item> fromFile(ItemType type, File file, ItemPath itemPath) {
         ItemType fileType = ItemType.fromFileName(file.getName());
+
+        if (file.isDirectory()) {
+            return Optional.of(new FileItem(user, itemPath.getType(), file, itemPath, this));
+        }
 
         if (fileType == type) {
             switch (fileType) {
@@ -331,10 +336,10 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         }
 
         if (parent != null) {
-            List<FileNoteItem> children = parent.listItems();
+            List<FileItem> children = parent.listItems();
             Optional<FileNoteItem> withTheSameName = children.stream()
-                    .filter(p -> p.getTitle()
-                    .equals(info.title))
+                    .filter(p -> !p.isDirectory() && p.getTitle().equals(info.title))
+                    .map(p -> (FileNoteItem)p)
                     .findFirst();
 
             if (withTheSameName.isPresent()) {

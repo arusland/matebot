@@ -83,6 +83,7 @@ public class ListCurrentDirCommand extends BaseBotCommand {
     private void renderNoteItem(User user, StringBuilder sb, int index, NoteItem note) {
         String changeDirShortcut = "/" + (index + 1);
         String removeFileShortcut = "/del" + (index + 1);
+        String moveFileShortcut = "/move" + (index + 1);
         sb.append(changeDirShortcut);
         sb.append(" ");
 
@@ -95,6 +96,8 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         if (!note.isDirectory()) {
             sb.append(" ");
             sb.append(removeFileShortcut);
+            sb.append(" ");
+            sb.append(moveFileShortcut);
         }
         sb.append("\n");
 
@@ -103,6 +106,7 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         } else {
             getContext().addShortcutCommand(user.getId(), changeDirShortcut, "dl", note.getFullPath());
             getContext().addShortcutCommand(user.getId(), removeFileShortcut, "rm", note.getFullPath());
+            getContext().addShortcutCommand(user.getId(), moveFileShortcut, "mv", note.getFullPath());
         }
     }
 
@@ -140,6 +144,7 @@ public class ListCurrentDirCommand extends BaseBotCommand {
     public void renderCommonItem(User user, StringBuilder sb, int index, Item item) {
         String changeDirShortcut = "/" + (index + 1);
         String removeFileShortcut = "/del" + (index + 1);
+        String moveFileShortcut = "/move" + (index + 1);
         sb.append(changeDirShortcut);
         sb.append(" ");
 
@@ -154,6 +159,8 @@ public class ListCurrentDirCommand extends BaseBotCommand {
             sb.append(FileUtils.byteCountToDisplaySize(item.getSize()));
             sb.append(" ");
             sb.append(removeFileShortcut);
+            sb.append(" ");
+            sb.append(moveFileShortcut);
         }
 
         sb.append("\n");
@@ -163,6 +170,7 @@ public class ListCurrentDirCommand extends BaseBotCommand {
         } else {
             getContext().addShortcutCommand(user.getId(), changeDirShortcut, "dl", item.getFullPath());
             getContext().addShortcutCommand(user.getId(), removeFileShortcut, "rm", item.getFullPath());
+            getContext().addShortcutCommand(user.getId(), moveFileShortcut, "mv", item.getFullPath());
         }
     }
 }
