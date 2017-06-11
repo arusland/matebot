@@ -107,6 +107,7 @@ public class CommonCommand extends BaseBotCommand {
                     StringBuilder sb = new StringBuilder("Item '");
                     sb.append(addedItem.getFullPath());
                     sb.append("' added!\n");
+                    sb.append("➡️");
                     sb.append(moveFileShortcut);
                     sendMessage(message.getChatId(), sb.toString());
 
@@ -186,7 +187,7 @@ public class CommonCommand extends BaseBotCommand {
         sb.append(" to ");
         sb.append(note.getParentPath());
         sb.append("\nTitle: " + note.getTitle());
-        sb.append("\n/move");
+        sb.append("\n➡️/move");
 
         getContext().addShortcutCommand(userId, "/move", "mv", note.getFullPath());
 
