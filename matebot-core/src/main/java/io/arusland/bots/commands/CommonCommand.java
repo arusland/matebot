@@ -135,6 +135,9 @@ public class CommonCommand extends BaseBotCommand {
                 getContext().clearShortcutCommands(user);
                 sendMessage(message.getChatId(), "Operation canceled");
                 return;
+            } else {
+                sendMessage(message.getChatId(), "Unknown command!");
+                return;
             }
         }
 
