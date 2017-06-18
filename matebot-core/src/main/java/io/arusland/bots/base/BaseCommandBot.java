@@ -144,6 +144,7 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
         KeyboardRow keyboardFirstRow = new KeyboardRow(); // Добавляем кнопки в первую строчку клавиатуры
         keyboardFirstRow.add("/alerts");
         keyboardFirstRow.add("/notes");
+        keyboardFirstRow.add("/ls");
 
 
         // Добавляем все строчки клавиатуры в список
