@@ -147,6 +147,8 @@ public class CommonCommand extends BaseBotCommand {
 
         if (StringUtils.isNoneBlank(msg)) {
             if (creatingNewDirectory && moveFileFrom != null) {
+                creatingNewDirectory = false;
+                moveFileFrom = null;
                 Item targetRoot = storage.getItemByPath(moveFileFrom.getType());
 
                 if (targetRoot != null) {
