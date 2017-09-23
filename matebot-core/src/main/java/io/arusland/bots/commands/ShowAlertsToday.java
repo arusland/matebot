@@ -8,13 +8,12 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
+ * Show today's alerts
+ *
  * @author Ruslan Absalyamov
  * @since 2017-09-23
  */
 public class ShowAlertsToday extends ShowAlertsBase {
-    private static final String EMOJI_BELL = "\uD83D\uDD14";
-    private static final String EMOJI_DIR = "\uD83D\uDCC1";
-
     public ShowAlertsToday(BotContext context) {
         super("today", "Show today's alerts", context);
     }

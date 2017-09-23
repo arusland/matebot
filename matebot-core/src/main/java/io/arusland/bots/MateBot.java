@@ -55,6 +55,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         register(new BackUpCommand(this));
         register(new ShowProcessList(this));
         register(new ShowAlertsToday(this));
+        register(new ShowAlertsTomorrow(this));
         registerAll(ItemCommand.listAll(this));
 
         log.info("MateBot started v0.1");
