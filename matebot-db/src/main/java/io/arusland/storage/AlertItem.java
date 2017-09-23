@@ -31,6 +31,8 @@ public interface AlertItem extends Item<AlertItem> {
      */
     String getMessage();
 
+    String getMessageShort();
+
     /**
      * Alert raw source.
      */

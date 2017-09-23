@@ -22,8 +22,9 @@ import java.util.List;
  * Created by ruslan on 04.12.2016.
  */
 public class ListCurrentDirCommand extends BaseBotCommand {
-    private static String EMOJI_DIR = "\uD83D\uDCC1";
-    private static String EMOJI_FILE = "\uD83D\uDDC4";
+    private static final String EMOJI_DIR = "\uD83D\uDCC1";
+    private static final String EMOJI_FILE = "\uD83D\uDDC4";
+    private static final String EMOJI_BELL = "\uD83D\uDD14";
 
     public ListCurrentDirCommand(BotContext context) {
         super("ls", "List items of current directory!", context);
@@ -120,7 +121,7 @@ public class ListCurrentDirCommand extends BaseBotCommand {
             sb.append(EMOJI_DIR);
         } else {
             if (alert.isActive()) {
-                sb.append("\uD83D\uDD14");
+                sb.append(EMOJI_BELL);
             } else {
                 sb.append("❌");
             }

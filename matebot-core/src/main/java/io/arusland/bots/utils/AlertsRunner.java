@@ -53,12 +53,46 @@ public class AlertsRunner {
             }
         }
 
-        log.info("Alerts run in " + (System.currentTimeMillis() - lastTime) + " ms" );
+        log.info("Alerts run in " + (System.currentTimeMillis() - lastTime) + " ms");
     }
 
     public void removeAllAlerts() {
         List<AlertItem> alertsToRemove = new ArrayList<>(alerts.keySet());
         alertsToRemove.forEach(a -> dequeueAlert(a));
+    }
+
+    public List<AlertItem> nextAlerts(Date dateTo) {
+        if (dateTo == null) {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.YEAR, 1000);
+            dateTo = cal.getTime();
+        }
+
+        final Date dateToReal = dateTo;
+
+        List<AlertItem> nextAlerts = new ArrayList<>(alerts.keySet()).stream()
+                .filter(p -> {
+                    Date nextDate = p.nextTime();
+
+                    return nextDate != null && nextDate.before(dateToReal);
+                }).collect(toList());
+
+        nextAlerts.sort(new Comparator<AlertItem>() {
+            @Override
+            public int compare(AlertItem o1, AlertItem o2) {
+                Date dt1 = o1.nextTime();
+                Date dt2 = o2.nextTime();
+
+                if (dt1 != null && dt2 != null) {
+                    return dt1.compareTo(dt2);
+                }
+
+                return 0;
+            }
+        });
+
+
+        return nextAlerts;
     }
 
     private void enqueueAlert(AlertItem alert, long userId) {

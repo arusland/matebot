@@ -1,6 +1,7 @@
 package io.arusland.bots.base;
 
 import io.arusland.bots.commands.ShortcutCommand;
+import io.arusland.storage.AlertItem;
 import io.arusland.storage.UserStorage;
 import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -88,4 +89,6 @@ public interface BotContext {
      * Returns timezone if user specified timezone, otherwise <code>null</code>.
      */
     TimeZone getTimeZone(User user);
+
+    List<AlertItem> nextAlerts(Date dateTo);
 }

@@ -1,5 +1,6 @@
 package io.arusland.bots.utils;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -58,5 +59,26 @@ public class TimeUtils {
         }
 
         return "";
+    }
+
+    public static String friendlyTimespanShort(Date nextTime) {
+        return friendlyTimespan(nextTime)
+                .replace("hours", "h.")
+                .replace("minutes", "m.")
+                .replace("seconds", "s.")
+                .replace("days", "d.")
+                .replace("several", "")
+                .replace("months", "mon.")
+                .replaceAll("  +", " ");
+    }
+
+    public static Date getTodayEnd() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.MILLISECOND, 999);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(cal.SECOND, 59);
+
+        return cal.getTime();
     }
 }

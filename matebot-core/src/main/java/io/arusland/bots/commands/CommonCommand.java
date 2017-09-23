@@ -415,6 +415,7 @@ public class CommonCommand extends BaseBotCommand {
                 sendMessage(chatId, "Alert was removed");
                 getContext().clearShortcutCommands(user);
                 getContext().listCurrentDir(update);
+                getContext().rerunAlerts();
             } else {
                 String removeFile = "/remove";
                 String cancelOperation = "/cancel";
