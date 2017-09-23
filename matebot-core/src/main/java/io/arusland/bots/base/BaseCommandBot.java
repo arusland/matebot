@@ -150,6 +150,7 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
         keyboardSecondRow.add("/today");
         keyboardSecondRow.add("/tomorrow");
         keyboardSecondRow.add("/week");
+        keyboardSecondRow.add("/month");
 
         keyboard.add(keyboardFirstRow);
         keyboard.add(keyboardSecondRow);

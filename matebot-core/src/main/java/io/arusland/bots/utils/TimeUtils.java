@@ -92,4 +92,17 @@ public class TimeUtils {
 
         return cal.getTime();
     }
+
+    public static Date getMonthEnd() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(getTodayEnd());
+        Date lastDayEnd = cal.getTime();
+
+        while (cal.get(Calendar.DAY_OF_MONTH) != 1) {
+            lastDayEnd = cal.getTime();
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        return lastDayEnd;
+    }
 }

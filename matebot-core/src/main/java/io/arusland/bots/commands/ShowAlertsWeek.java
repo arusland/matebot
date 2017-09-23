@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class ShowAlertsWeek extends ShowAlertsBase {
     public ShowAlertsWeek(BotContext context) {
-        super("week", "Show alerts for tomorrow", context);
+        super("week", "Show alerts for current week", context);
     }
 
     @Override
