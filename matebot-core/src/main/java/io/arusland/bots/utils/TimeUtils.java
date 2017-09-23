@@ -81,4 +81,15 @@ public class TimeUtils {
 
         return cal.getTime();
     }
+
+    public static Date getWeekEnd() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(getTodayEnd());
+
+        while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        return cal.getTime();
+    }
 }
