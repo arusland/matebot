@@ -23,8 +23,8 @@ import static java.util.stream.Collectors.toList;
  */
 public class FileUserStorage implements UserStorage, ItemFactory {
     protected final Logger log = Logger.getLogger(getClass());
-    private final static SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
-    private final static SimpleDateFormat BACKUP_FILE_NAME_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat FILE_NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
+    private final SimpleDateFormat BACKUP_FILE_NAME_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private final User user;
     private final File root;
     private List<Item> rootItems;
@@ -99,11 +99,11 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         return null;
     }
 
-    private static String generateAlertFileName() {
+    private String generateAlertFileName() {
         return FILE_NAME_FORMAT.format(new Date()) + ".alert";
     }
 
-    private static String generateNoteFileName() {
+    private String generateNoteFileName() {
         return FILE_NAME_FORMAT.format(new Date()) + ".note";
     }
 

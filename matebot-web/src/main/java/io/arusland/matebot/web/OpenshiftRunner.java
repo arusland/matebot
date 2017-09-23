@@ -2,6 +2,7 @@ package io.arusland.matebot.web;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 /**
@@ -20,7 +21,7 @@ public class OpenshiftRunner {
             }
 
             String cmd = javaHome + "/bin/java -jar matebot.jar";
-            Process p = Runtime.getRuntime()
+            Runtime.getRuntime()
                     .exec(cmd, null, appDir);
 
             return;
@@ -32,7 +33,7 @@ public class OpenshiftRunner {
 
     private static void killProcess(File pidFile) {
         try {
-            int pid = Integer.parseInt(new String(Files.readAllBytes(pidFile.toPath())));
+            int pid = Integer.parseInt(new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8));
             Runtime.getRuntime().exec("kill -9 " + pid);
         } catch (IOException e) {
             e.printStackTrace();

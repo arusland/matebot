@@ -8,13 +8,13 @@ import java.util.Date;
  * @since 2017-04-25
  */
 public class StatItem {
-    private final static SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final static String SDF = "yyyy-MM-dd HH:mm:ss";
     private final Date time;
     private final String agent;
     private final String ip;
 
     public StatItem(Date time, String ip, String agent) {
-        this.time = time;
+        this.time = (Date)time.clone();
         this.ip = ip;
         this.agent = agent;
     }
@@ -32,7 +32,7 @@ public class StatItem {
     }
 
     public String formatTime() {
-        return SDF.format(time);
+        return new SimpleDateFormat(SDF).format(time);
     }
 
     @Override

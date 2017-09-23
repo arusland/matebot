@@ -20,7 +20,7 @@ import java.util.*;
  */
 public abstract class BaseCommandBot extends TelegramLongPollingBot {
     protected final Logger log = Logger.getLogger(getClass());
-    protected final int TEXT_MESSAGE_MAX_LENGTH = 4096;
+    protected final static int TEXT_MESSAGE_MAX_LENGTH = 4096;
     private final Map<String, BaseBotCommand> commandsMap = new HashMap<>();
 
     public BaseCommandBot() {

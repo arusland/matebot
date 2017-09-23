@@ -137,8 +137,9 @@ public class BotConfig {
 
         try {
             file = new File(fileName).getCanonicalFile();
-            InputStream input = new FileInputStream(fileName);
-            prop.load(input);
+            try(InputStream input = new FileInputStream(fileName)) {
+                prop.load(input);
+            }
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

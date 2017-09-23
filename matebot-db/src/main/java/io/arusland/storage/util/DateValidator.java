@@ -22,7 +22,7 @@ public final class DateValidator {
             return false;
         }
 
-        return DateValidator.isValid(String.format("%2d/%2d/%4d",
+        return isValid(String.format("%2d/%2d/%4d",
                 day != null ? day : 1, month != null ? month : 1, year != null ? year : 2000));
     }
 
@@ -31,7 +31,7 @@ public final class DateValidator {
      *
      * @param dateToValidate Input date in format <code>dd/MM/yyyy</code>.
      */
-    public static boolean isValid(String dateToValidate) {
+    public synchronized static boolean isValid(String dateToValidate) {
         try {
             //if not valid, it will throw ParseException
             Date date = sdf.parse(dateToValidate);

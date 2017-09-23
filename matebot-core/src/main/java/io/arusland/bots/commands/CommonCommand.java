@@ -9,9 +9,7 @@ import io.arusland.storage.NoteItem;
 import io.arusland.storage.UserStorage;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.glassfish.jersey.message.internal.StringBuilderUtils;
 import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.File;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
@@ -19,7 +17,6 @@ import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.bots.commands.BotCommand;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -28,12 +25,14 @@ import java.util.stream.Collectors;
 /**
  * Handle shortcut commands, file operations.
  * <p>
- * Created by ruslan on 03.12.2016.
+ *
+ * @author Ruslan Absalyamov
+ * @since 2016.12.03
  */
 public class CommonCommand extends BaseBotCommand {
     private final static String COMMAND_CANCEL = "/cancel";
-    private final static DateFormat NAME_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
-    private final static DateFormat DATETIME_FORMAT = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+    private final static String NAME_FORMAT = "yyyyMMdd_HHmmss";
+    private final static String DATETIME_FORMAT = "HH:mm dd.MM.yyyy";
     private boolean creatingNewDirectory;
     private Item moveFileFrom;
 
@@ -207,7 +206,7 @@ public class CommonCommand extends BaseBotCommand {
             StringBuilder sb = new StringBuilder();
             sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
-            sb.append(DATETIME_FORMAT.format(getContext().toClient(user, nextTime)));
+            sb.append(new SimpleDateFormat(DATETIME_FORMAT).format(getContext().toClient(user, nextTime)));
             sb.append("\n");
             sb.append("\uD83D\uDD14 Notification in ");
             sb.append(TimeUtils.friendlyTimespan(nextTime));
@@ -337,7 +336,7 @@ public class CommonCommand extends BaseBotCommand {
 
         sb.append("\uD83D\uDCDD Note\n");
         sb.append("Added: ");
-        sb.append(DATETIME_FORMAT.format(getContext().toClient(user, note.getModifiedDate())));
+        sb.append(new SimpleDateFormat(DATETIME_FORMAT).format(getContext().toClient(user, note.getModifiedDate())));
         sb.append("\n");
         sb.append(note.getContent());
 
@@ -371,7 +370,7 @@ public class CommonCommand extends BaseBotCommand {
         }
         sb.append("\n");
         sb.append("Notification time: ");
-        sb.append(DATETIME_FORMAT.format(getContext().toClient(user, nextTime)));
+        sb.append(new SimpleDateFormat(DATETIME_FORMAT).format(getContext().toClient(user, nextTime)));
         sb.append("\n");
         sb.append("Alert source: ");
         sb.append(alert.getSource());
@@ -464,6 +463,6 @@ public class CommonCommand extends BaseBotCommand {
     }
 
     private static String getNewFileName() {
-        return NAME_FORMAT.format(new Date());
+        return new SimpleDateFormat(NAME_FORMAT).format(new Date());
     }
 }

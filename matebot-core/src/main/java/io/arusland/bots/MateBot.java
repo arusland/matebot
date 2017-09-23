@@ -132,7 +132,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         Long chatId = message.getChatId();
         long savedChatId = configOutput.getUserChatId(messageUserId);
 
-        if (messageUserId != null && chatId != null && chatId > 0
+        if (chatId != null && chatId > 0
                 && savedChatId != chatId
                 && message.getChat().isUserChat()) {
             configOutput.setUserChatId(messageUserId, chatId);

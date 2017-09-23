@@ -94,8 +94,10 @@ public class ZipUtil {
 
         if (node.isDirectory()) {
             String[] subNote = node.list();
-            for (String filename : subNote) {
-                generateFileList(new File(node, filename));
+            if (subNote != null) {
+                for (String filename : subNote) {
+                    generateFileList(new File(node, filename));
+                }
             }
         }
     }
