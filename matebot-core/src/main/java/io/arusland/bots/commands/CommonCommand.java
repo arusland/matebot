@@ -148,7 +148,6 @@ public class CommonCommand extends BaseBotCommand {
         if (StringUtils.isNoneBlank(msg)) {
             if (creatingNewDirectory && moveFileFrom != null) {
                 creatingNewDirectory = false;
-                moveFileFrom = null;
                 Item targetRoot = storage.getItemByPath(moveFileFrom.getType());
 
                 if (targetRoot != null) {
@@ -156,6 +155,7 @@ public class CommonCommand extends BaseBotCommand {
                     storage.moveItem(moveFileFrom.getFullPath(), targetPath);
                     sendMessage(message.getChatId(), String.format("Item moved to '%s'", targetPath));
                 }
+                moveFileFrom = null;
             } else {
                 handleTextMessageInternal(message, user, storage, msg);
             }
