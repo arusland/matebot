@@ -12,6 +12,12 @@ git reset --hard HEAD
 git pull
 
 mvn clean package -DskipTests
+OUT=$?
+
+if [ $OUT != 0 ]; then
+   echo "Project rebuild failed: $OUT!"
+   exit $OUT
+fi
 
 if [ "$pid" != "" ]; then
   echo "Killing process $pid..."
