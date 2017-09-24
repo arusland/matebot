@@ -29,7 +29,7 @@ public abstract class ShowAlertsBase extends BaseBotCommand {
 
     protected abstract String getTitle();
 
-    protected String getAlertTitle(AlertItem alert) {
+    protected String getAlertTitle(AlertItem alert, User user) {
         return alert.getTitle();
     }
 
@@ -80,7 +80,7 @@ public abstract class ShowAlertsBase extends BaseBotCommand {
         if (nextTime != null) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(nextTime);
-            sb.append(getAlertTitle(alert));
+            sb.append(getAlertTitle(alert, user));
             String span = TimeUtils.friendlyTimespanShort(nextTime);
             if (!span.isEmpty()) {
                 sb.append(" (" + span + ") ");
