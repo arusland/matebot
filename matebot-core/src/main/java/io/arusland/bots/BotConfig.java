@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.TimeZone;zoooooooooo
+import java.util.TimeZone;
 
 /**
  * Configuration for MateBot.
