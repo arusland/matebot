@@ -3,13 +3,12 @@ package io.arusland.bots;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.TimeZone;
+import java.util.TimeZone;zoooooooooo
 
 /**
  * Configuration for MateBot.
