@@ -25,7 +25,7 @@ public abstract class ShowAlertsBase extends BaseBotCommand {
         super(commandIdentifier, description, context);
     }
 
-    protected abstract Date getPeriodEnd();
+    protected abstract Date getPeriodEnd(User user);
 
     protected abstract String getTitle();
 
@@ -38,7 +38,7 @@ public abstract class ShowAlertsBase extends BaseBotCommand {
         long chatId = update.getMessage().getChat().getId();
         User user = update.getMessage().getFrom();
 
-        Date periodEnd = getPeriodEnd();
+        Date periodEnd = getPeriodEnd(user);
         List<AlertItem> alerts = getContext()
                 .nextAlerts(periodEnd)
                 .stream()

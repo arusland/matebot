@@ -2,6 +2,7 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.utils.TimeUtils;
+import org.telegram.telegrambots.api.objects.User;
 
 import java.util.Date;
 
@@ -17,8 +18,10 @@ public class ShowAlertsMonth extends ShowAlertsBase {
     }
 
     @Override
-    protected Date getPeriodEnd() {
-        return TimeUtils.getMonthEnd();
+    protected Date getPeriodEnd(User user) {
+        Date nowClient = getContext().toClient(user, new Date());
+        Date monthEnd = getContext().fromClient(user, TimeUtils.getMonthEnd(nowClient));
+        return monthEnd;
     }
 
     @Override

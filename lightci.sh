@@ -26,7 +26,7 @@ if [ "$cur_commit" != "$last_commit" ]; then
   echo "$cur_commit">$filename
 
   cmd=$script_dir/redeploy.sh
-  echo "Executig command $cmd...."
+  echo "Executing command $cmd...."
 
   sh $cmd  
 fi

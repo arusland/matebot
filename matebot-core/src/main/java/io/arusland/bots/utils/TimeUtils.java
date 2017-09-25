@@ -72,8 +72,9 @@ public class TimeUtils {
                 .replaceAll("  +", " ");
     }
 
-    public static Date getTodayEnd() {
+    public static Date getTodayEnd(Date now) {
         Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
         cal.set(Calendar.MILLISECOND, 999);
         cal.set(Calendar.HOUR_OF_DAY, 23);
         cal.set(Calendar.MINUTE, 59);
@@ -82,9 +83,9 @@ public class TimeUtils {
         return cal.getTime();
     }
 
-    public static Date getWeekEnd() {
+    public static Date getWeekEnd(Date now) {
         Calendar cal = Calendar.getInstance();
-        cal.setTime(getTodayEnd());
+        cal.setTime(getTodayEnd(now));
 
         while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
             cal.add(Calendar.DAY_OF_MONTH, 1);
@@ -93,9 +94,9 @@ public class TimeUtils {
         return cal.getTime();
     }
 
-    public static Date getMonthEnd() {
+    public static Date getMonthEnd(Date now) {
         Calendar cal = Calendar.getInstance();
-        cal.setTime(getTodayEnd());
+        cal.setTime(getTodayEnd(now));
         Date lastDayEnd = cal.getTime();
 
         while (cal.get(Calendar.DAY_OF_MONTH) != 1) {

@@ -20,8 +20,11 @@ public class ShowAlertsToday extends ShowAlertsBase {
     }
 
     @Override
-    protected Date getPeriodEnd() {
-        return TimeUtils.getTodayEnd();
+    protected Date getPeriodEnd(User user) {
+        Date nowClient = getContext().toClient(user, new Date());
+        Date dateEnd = getContext().fromClient(user, TimeUtils.getTodayEnd(nowClient));
+
+        return dateEnd;
     }
 
     @Override

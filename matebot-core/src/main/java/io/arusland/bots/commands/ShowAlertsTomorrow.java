@@ -2,6 +2,7 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.utils.TimeUtils;
+import org.telegram.telegrambots.api.objects.User;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -18,12 +19,14 @@ public class ShowAlertsTomorrow extends ShowAlertsBase {
     }
 
     @Override
-    protected Date getPeriodEnd() {
+    protected Date getPeriodEnd(User user) {
+        Date nowClient = getContext().toClient(user, new Date());
+        Date todayEnd = TimeUtils.getTodayEnd(nowClient);
         Calendar cal = Calendar.getInstance();
-        cal.setTime(TimeUtils.getTodayEnd());
+        cal.setTime(todayEnd);
         cal.add(Calendar.DAY_OF_MONTH, 1);
 
-        return cal.getTime();
+        return getContext().fromClient(user, cal.getTime());
     }
 
     @Override
