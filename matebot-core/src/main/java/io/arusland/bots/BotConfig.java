@@ -69,25 +69,22 @@ public class BotConfig {
     }
 
     /**
-     * If userId defined, only he/she can use this bot.
+     * Returns admin user's id.
      *
-     * @return User's id.
+     * @return Admin User's id.
      */
-    public int getSingleUserId() {
-        if (prop.containsKey("single.userid")) {
-            try {
-                return Integer.parseInt(getProperty("single.userid"));
-            } catch (NumberFormatException ex) {
-                log.error(ex.getMessage(), ex);
-            }
-        }
+    public int getAdminId() {
+        List<Integer> selectedUsers = getAllowedUsersIds();
 
-        return 0;
+        return selectedUsers.isEmpty() ? 0 : selectedUsers.get(0);
     }
 
-    public List<Integer> getSelectedUsersIds() {
-        if (prop.containsKey("selected.userids")) {
-            String ids = getProperty("selected.userids");
+    /**
+     * Returns allowed users ids.
+     */
+    public List<Integer> getAllowedUsersIds() {
+        if (prop.containsKey("allowed.userids")) {
+            String ids = getProperty("allowed.userids");
             try {
                 return Arrays.stream(ids.split(","))
                         .filter(p -> !p.isEmpty())

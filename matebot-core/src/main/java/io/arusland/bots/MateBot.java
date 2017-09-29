@@ -97,15 +97,14 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
     @Override
     protected boolean filter(Message message) {
-        int userId = configInput.getSingleUserId();
-        List<Integer> selectedUsers = configInput.getSelectedUsersIds();
+        List<Integer> selectedUsers = configInput.getAllowedUsersIds();
 
-        if (userId == 0 && selectedUsers.isEmpty()) {
+        if (selectedUsers.isEmpty()) {
             return false;
         }
 
         int messageUserId = message.getFrom().getId();
-        boolean userIsOK =  messageUserId == userId || selectedUsers.contains(messageUserId);
+        boolean userIsOK = selectedUsers.contains(messageUserId);
 
         if (!userIsOK) {
             log.warn("Message from alien skipped: " + message);
@@ -314,22 +313,11 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     private void sendHelloMessage() {
-        List<Integer> selectedUsers = configInput.getSelectedUsersIds();
-
-        if (selectedUsers.isEmpty()) {
-            int adminId = configInput.getSingleUserId();
-
-            if (adminId > 0) {
-                TimeZoneClient client = getTimeZoneClient(adminId);
-                sendMessage((long) adminId, "Matebot started at " + client.format(new Date()));
+        configInput.getAllowedUsersIds().forEach(userId -> {
+            if (userId > 0) {
+                TimeZoneClient client = getTimeZoneClient(userId);
+                sendMessage((long) userId, "Matebot started at " + client.format(new Date()));
             }
-        } else {
-            selectedUsers.forEach(id -> {
-                if (id > 0) {
-                    TimeZoneClient client = getTimeZoneClient(id);
-                    sendMessage((long) id, "Matebot started at " + client.format(new Date()));
-                }
-            });
-        }
+        });
     }
 }
