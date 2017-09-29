@@ -60,14 +60,12 @@ public class ZipUtil {
                 ZipEntry ze = new ZipEntry(file);
                 zos.putNextEntry(ze);
 
-                FileInputStream in = new FileInputStream(sourceFullpath + File.separator + file);
-
-                int len;
-                while ((len = in.read(buffer)) > 0) {
-                    zos.write(buffer, 0, len);
+                try(FileInputStream in = new FileInputStream(sourceFullpath + File.separator + file)) {
+                    int len;
+                    while ((len = in.read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
+                    }
                 }
-
-                in.close();
             }
 
             zos.closeEntry();

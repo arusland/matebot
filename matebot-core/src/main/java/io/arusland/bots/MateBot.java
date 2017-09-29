@@ -98,14 +98,16 @@ public class MateBot extends BaseCommandBot implements BotContext {
     @Override
     protected boolean filter(Message message) {
         int userId = configInput.getSingleUserId();
+        List<Integer> selectedUsers = configInput.getSelectedUsersIds();
 
-        if (userId == 0) {
+        if (userId == 0 && selectedUsers.isEmpty()) {
             return false;
         }
 
-        boolean skipThisMessage = message.getFrom().getId() != userId;
+        int messageUserId = message.getFrom().getId();
+        boolean userIsOK =  messageUserId == userId || selectedUsers.contains(messageUserId);
 
-        if (skipThisMessage) {
+        if (!userIsOK) {
             log.warn("Message from alien skipped: " + message);
             sendMessage(message.getChatId(),
                     "\uD83E\uDD16 Sorry, but it is personal bot. You can install you own one from https://github.com/arusland/matebot");
@@ -312,11 +314,22 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     private void sendHelloMessage() {
-        int adminId = configInput.getSingleUserId();
+        List<Integer> selectedUsers = configInput.getSelectedUsersIds();
 
-        if (adminId > 0) {
-            TimeZoneClient client = getTimeZoneClient(adminId);
-            sendMessage((long) adminId, "Matebot started at " + client.format(new Date()));
+        if (selectedUsers.isEmpty()) {
+            int adminId = configInput.getSingleUserId();
+
+            if (adminId > 0) {
+                TimeZoneClient client = getTimeZoneClient(adminId);
+                sendMessage((long) adminId, "Matebot started at " + client.format(new Date()));
+            }
+        } else {
+            selectedUsers.forEach(id -> {
+                if (id > 0) {
+                    TimeZoneClient client = getTimeZoneClient(id);
+                    sendMessage((long) id, "Matebot started at " + client.format(new Date()));
+                }
+            });
         }
     }
 }

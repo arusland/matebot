@@ -5,10 +5,8 @@ import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Configuration for MateBot.
@@ -80,10 +78,27 @@ public class BotConfig {
             try {
                 return Integer.parseInt(getProperty("single.userid"));
             } catch (NumberFormatException ex) {
+                log.error(ex.getMessage(), ex);
             }
         }
 
         return 0;
+    }
+
+    public List<Integer> getSelectedUsersIds() {
+        if (prop.containsKey("selected.userids")) {
+            String ids = getProperty("selected.userids");
+            try {
+                return Arrays.stream(ids.split(","))
+                        .filter(p -> !p.isEmpty())
+                        .map(p -> Integer.parseInt(p))
+                        .collect(Collectors.toList());
+            } catch (NumberFormatException ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     public String getMatebotDbRoot() {
@@ -136,7 +151,7 @@ public class BotConfig {
 
         try {
             file = new File(fileName).getCanonicalFile();
-            try(InputStream input = new FileInputStream(fileName)) {
+            try (InputStream input = new FileInputStream(fileName)) {
                 prop.load(input);
             }
         } catch (FileNotFoundException e) {
