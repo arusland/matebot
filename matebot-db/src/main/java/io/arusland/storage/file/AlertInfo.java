@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  */
 public class AlertInfo {
     private static final Pattern ALERT_FULL_PATTERN = Pattern.compile("^(\\d\\d*):(\\d\\d*) (\\d\\d*):(\\d\\d*):(\\d{4})( .*)*$");
-    private static final Pattern ALERT_FULL_PATTERN2 = Pattern.compile("^(\\d\\d*):(\\d\\d*) (\\d\\d*):(\\d\\d*)( .*)*$");
+    private static final Pattern ALERT_FULL_PATTERN2 = Pattern.compile("^(\\d\\d*):(\\d\\d*) (\\d\\d*):(\\d\\d*):*( .*)*$");
     private static final Pattern ALERT_FULL_PATTERN3 = Pattern.compile("^(\\d\\d*):(\\d\\d*) (\\d\\d*):( .*)*$");
     private static final Pattern ALERT_SHORT_PATTERN = Pattern.compile("^(\\d\\d*):(\\d\\d*)( .*)*$");
     private static final Pattern ALERT_WEEK_PATTERN = Pattern.compile("^(\\d\\d*):(\\d\\d*) ([\\d\\-,]+)( .*)*$");

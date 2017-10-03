@@ -144,6 +144,51 @@ public class AlertInfoTest {
         assertEquals("07:3 23:2", info.content);
     }
 
+    @Test
+    public void testFullWithoutYearWithMessage2() {
+        AlertInfo info = parseInfo("07:3 23:2: My message");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(3, info.minute);
+        assertEquals(23, (int) info.day);
+        assertEquals(2, (int) info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("My message", info.message);
+        assertEquals("07:3 23:2: My message", info.content);
+    }
+
+    @Test
+    public void testFullWithoutYearWithEmptyMessage2() {
+        AlertInfo info = parseInfo("07:3 23:2: ");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(3, info.minute);
+        assertEquals(23, (int) info.day);
+        assertEquals(2, (int) info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("", info.message);
+        assertEquals("07:3 23:2:", info.content);
+    }
+
+    @Test
+    public void testFullWithoutYearWithoutMessage2() {
+        AlertInfo info = parseInfo("07:3 23:2:");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(3, info.minute);
+        assertEquals(23, (int) info.day);
+        assertEquals(2, (int) info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("", info.message);
+        assertEquals("07:3 23:2:", info.content);
+    }
+
 
     @Test
     public void testFullWithoutYearAndMonthWithMessage() {
