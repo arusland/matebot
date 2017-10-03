@@ -18,8 +18,7 @@ import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.bots.commands.BotCommand;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +34,13 @@ public class CommonCommand extends BaseBotCommand {
     private final static String DATETIME_FORMAT = "HH:mm dd.MM.yyyy";
     private boolean creatingNewDirectory;
     private Item moveFileFrom;
+    private final Map<String, Integer> minutes = new HashMap<String, Integer>() {{
+        put("1min", 1);
+        put("5min", 5);
+        put("10min", 10);
+        put("30min", 30);
+        put("1hour", 60);
+    }};
 
     public CommonCommand(BotContext context) {
         super("common", "This command not visible in menu!", context);
@@ -225,83 +231,132 @@ public class CommonCommand extends BaseBotCommand {
         if (cmd.hasArguments()) {
             List<String> args = cmd.getArguments();
             String command = cmd.getCommand();
+
             if ("cd".equals(command)) {
-                getContext().setCurrentDir(user, args.get(0));
-                getContext().listCurrentDir(update);
-
+                handleChangeDir(user, update, args);
             } else if ("dl".equals(command)) {
-                Item item = storage.getItemByPath(args.get(0));
-
-                if (item != null) {
-                    if (item instanceof AlertItem) {
-                        handleDownloadingAlertItem(chatId, (AlertItem) item, user);
-                    } else if (item instanceof NoteItem) {
-                        handleDownloadingNoteItem(chatId, (NoteItem) item, user);
-                    } else {
-                        handleDownloadingCommonItem(chatId, item);
-                    }
-                } else {
-                    sendMessage(chatId, "File not found!");
-                }
+                handleDownloadItem(user, chatId, storage, args);
             } else if ("rm".equals(command)) {
-                Item item = storage.getItemByPath(args.get(0));
-
-                if (item != null) {
-                    if (item instanceof AlertItem) {
-                        handleRemovingAlertItem(cmd, user, chatId, update, storage, (AlertItem) item);
-                    } else if (item instanceof NoteItem) {
-                        handleRemovingNoteItem(cmd, user, chatId, update, storage, (NoteItem) item);
-                    } else {
-                        handleRemovingCommonItem(cmd, user, chatId, update, storage, item);
-                    }
-                } else {
-                    sendMessage(chatId, "File not found!");
-                }
+                handleRemoveItem(cmd, user, chatId, update, storage, args);
             } else if ("mv".equals(command)) {
-                Item item = storage.getItemByPath(args.get(0));
-
-                if (item != null) {
-                    if (!(item instanceof AlertItem)) {
-                        if (args.size() > 1) {
-                            String itemFrom = args.get(0);
-                            String targetPath = args.get(1);
-                            storage.moveItem(itemFrom, targetPath);
-                            sendMessage(chatId, String.format("Item moved to '%s'", targetPath));
-                        } else {
-                            String newDir = "/new";
-                            List<Item> rootItems = storage.listItems(item.getType())
-                                    .stream()
-                                    .filter(p -> p.isDirectory())
-                                    .collect(Collectors.toList());
-                            StringBuilder sb = new StringBuilder();
-
-                            sb.append("Choose directory move to or /cancel\n");
-
-                            for (Item subItem : rootItems) {
-                                String cmdText = "/" + subItem.getName();
-                                sb.append(cmdText);
-                                sb.append("\n");
-
-                                getContext().addShortcutCommand(user.getId(), cmdText, "mv",
-                                        item.getFullPath(), subItem.getFullPath());
-                            }
-                            sb.append(newDir);
-                            sendMessage(chatId, sb.toString());
-
-                            getContext().addShortcutCommand(user.getId(), newDir, "newdir", item.getFullPath());
-                        }
-                    }
-                } else {
-                    sendMessage(chatId, "File not found!");
-                }
+                handleMoveItem(user, chatId, storage, args);
             } else if ("newdir".equals(command)) {
-                sendMessage(chatId, "Enter new directory name or /cancel");
-                creatingNewDirectory = true;
-                moveFileFrom = storage.getItemByPath(args.get(0));
+                handleNewDir(chatId, storage, args);
+            } else if ("remind".equals(command)) {
+                handleRemindMe(user, chatId, storage, args);
             } else {
                 log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
             }
         }
+    }
+
+    private void handleRemindMe(User user, Long chatId, UserStorage storage, List<String> args) {
+        if (args.size() >= 2) {
+            String text = args.get(0);
+            String in = args.get(1);
+            int mins = getInMinutes(in);
+
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MINUTE, mins);
+
+            if (cal.get(Calendar.SECOND) > 0) {
+                cal.add(Calendar.MINUTE, 1);
+            }
+
+            String cmdText = cal.get(Calendar.HOUR_OF_DAY) + ":"
+                    + cal.get(Calendar.MINUTE) + " " + text;
+            Item alertItem = storage.addItem("/", cmdText);
+
+            if (alertItem instanceof AlertItem) {
+                handleAlertItem(chatId, (AlertItem) alertItem, storage, user);
+            }
+        }
+    }
+
+    private int getInMinutes(String in) {
+        return minutes.getOrDefault(in, 1);
+    }
+
+    private void handleNewDir(Long chatId, UserStorage storage, List<String> args) {
+        sendMessage(chatId, "Enter new directory name or /cancel");
+        creatingNewDirectory = true;
+        moveFileFrom = storage.getItemByPath(args.get(0));
+    }
+
+    private void handleMoveItem(User user, Long chatId, UserStorage storage, List<String> args) {
+        Item item = storage.getItemByPath(args.get(0));
+
+        if (item != null) {
+            if (!(item instanceof AlertItem)) {
+                if (args.size() > 1) {
+                    String itemFrom = args.get(0);
+                    String targetPath = args.get(1);
+                    storage.moveItem(itemFrom, targetPath);
+                    sendMessage(chatId, String.format("Item moved to '%s'", targetPath));
+                } else {
+                    String newDir = "/new";
+                    List<Item> rootItems = storage.listItems(item.getType())
+                            .stream()
+                            .filter(p -> p.isDirectory())
+                            .collect(Collectors.toList());
+                    StringBuilder sb = new StringBuilder();
+
+                    sb.append("Choose directory move to or /cancel\n");
+
+                    for (Item subItem : rootItems) {
+                        String cmdText = "/" + subItem.getName();
+                        sb.append(cmdText);
+                        sb.append("\n");
+
+                        getContext().addShortcutCommand(user.getId(), cmdText, "mv",
+                                item.getFullPath(), subItem.getFullPath());
+                    }
+                    sb.append(newDir);
+                    sendMessage(chatId, sb.toString());
+
+                    getContext().addShortcutCommand(user.getId(), newDir, "newdir", item.getFullPath());
+                }
+            }
+        } else {
+            sendMessage(chatId, "File not found!");
+        }
+    }
+
+    private void handleRemoveItem(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage, List<String> args) {
+        Item item = storage.getItemByPath(args.get(0));
+
+        if (item != null) {
+            if (item instanceof AlertItem) {
+                handleRemovingAlertItem(cmd, user, chatId, update, storage, (AlertItem) item);
+            } else if (item instanceof NoteItem) {
+                handleRemovingNoteItem(cmd, user, chatId, update, storage, (NoteItem) item);
+            } else {
+                handleRemovingCommonItem(cmd, user, chatId, update, storage, item);
+            }
+        } else {
+            sendMessage(chatId, "File not found!");
+        }
+    }
+
+    private void handleDownloadItem(User user, Long chatId, UserStorage storage, List<String> args) {
+        Item item = storage.getItemByPath(args.get(0));
+
+        if (item != null) {
+            if (item instanceof AlertItem) {
+                handleDownloadingAlertItem(chatId, (AlertItem) item, user);
+            } else if (item instanceof NoteItem) {
+                handleDownloadingNoteItem(chatId, (NoteItem) item, user);
+            } else {
+                handleDownloadingCommonItem(chatId, item);
+            }
+        } else {
+            sendMessage(chatId, "File not found!");
+        }
+    }
+
+    private void handleChangeDir(User user, Update update, List<String> args) {
+        getContext().setCurrentDir(user, args.get(0));
+        getContext().listCurrentDir(update);
     }
 
     private void handleRemovingNoteItem(ShortcutCommand cmd, User user, Long chatId, Update update, UserStorage storage, NoteItem note) {

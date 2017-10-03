@@ -150,8 +150,12 @@ public class MateBot extends BaseCommandBot implements BotContext {
     @Override
     public UserStorage getUserStorage(User user) {
         io.arusland.storage.User user2 = new io.arusland.storage.User(user.getId(), user.getUserName());
-        UserStorage userStorage = storage.getOrCreate(user2);
-        userStorage.setTimeZone(getTimeZone(user));
+        return getUserStorage(user2);
+    }
+
+    private UserStorage getUserStorage(io.arusland.storage.User user) {
+        UserStorage userStorage = storage.getOrCreate(user);
+        userStorage.setTimeZone(getUserTimeZone(user.getId()));
 
         return userStorage;
     }
@@ -190,7 +194,11 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
     @Override
     public TimeZone getTimeZone(User user) {
-        return configOutput.getUserTimeZone(user.getId());
+        return getUserTimeZone(user.getId());
+    }
+
+    private TimeZone getUserTimeZone(long userId) {
+        return configOutput.getUserTimeZone(userId);
     }
 
     @Override
@@ -285,17 +293,25 @@ public class MateBot extends BaseCommandBot implements BotContext {
                 String removeFile = "/remove";
 
                 if (StringUtils.isNoneBlank(alertItem.getMessage())) {
-                    sb.append("ALERT: " + alertItem.getMessage());
+                    sb.append("ALERT: ");
+                    sb.append(alertItem.getMessage());
                 } else {
                     sb.append("ALERT!!!");
                 }
 
                 sb.append("\n\n❌");
                 sb.append(removeFile);
-                sb.append("\n");
+                sb.append("\n\nRemind me in:\n");
+                sb.append("/1min  /5min  /10min  /30min  /1hour");
 
-                addShortcutCommand((int) ((long) userId), removeFile, "rm", alertItem.getFullPath(), "0");
+                int userIdMain =(int) ((long) userId);
 
+                addShortcutCommand(userIdMain, removeFile, "rm", alertItem.getFullPath(), "0");
+                addShortcutCommand(userIdMain, "/1min", "remind", alertItem.getMessage(), "1min");
+                addShortcutCommand(userIdMain, "/5min", "remind", alertItem.getMessage(), "5min");
+                addShortcutCommand(userIdMain, "/10min", "remind", alertItem.getMessage(), "10min");
+                addShortcutCommand(userIdMain, "/30min", "remind", alertItem.getMessage(), "30min");
+                addShortcutCommand(userIdMain, "/1hour", "remind", alertItem.getMessage(), "1hour");
 
                 sendMessage(chatId, sb.toString());
             }
