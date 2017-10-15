@@ -1,5 +1,7 @@
 package io.arusland.storage.util;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,6 +19,7 @@ import java.util.zip.ZipOutputStream;
  * From http://www.mkyong.com/java/how-to-compress-files-in-zip-format/
  */
 public class ZipUtil {
+    private final Logger log = Logger.getLogger(getClass());
     private final List<String> fileList;
     private final String sourceFullpath;
     private final File sourceDir;
@@ -44,7 +47,6 @@ public class ZipUtil {
      * @param zipFile output ZIP file location
      */
     public void zipIt(File zipFile) {
-
         byte[] buffer = new byte[1024];
 
         try {
@@ -52,15 +54,14 @@ public class ZipUtil {
             FileOutputStream fos = new FileOutputStream(zipFile);
             ZipOutputStream zos = new ZipOutputStream(fos);
 
-            System.out.println("Output to Zip : " + zipFile);
+            log.info("Output to Zip : " + zipFile);
 
             for (String file : this.fileList) {
-
-                System.out.println("File Added : " + file);
+                log.info("File Added : " + file);
                 ZipEntry ze = new ZipEntry(file);
                 zos.putNextEntry(ze);
 
-                try(FileInputStream in = new FileInputStream(sourceFullpath + File.separator + file)) {
+                try (FileInputStream in = new FileInputStream(sourceFullpath + File.separator + file)) {
                     int len;
                     while ((len = in.read(buffer)) > 0) {
                         zos.write(buffer, 0, len);
@@ -72,7 +73,7 @@ public class ZipUtil {
             //remember close it
             zos.close();
 
-            System.out.println("Done");
+            log.info("Done");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
