@@ -29,6 +29,7 @@ public class ZipUtil {
         this.sourceDir = dir.isDirectory() ? dir : dir.getParentFile();
         try {
             this.sourceFullpath = this.sourceDir.getCanonicalPath();
+            log.info("sourceFullpath: " + sourceFullpath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -57,11 +58,12 @@ public class ZipUtil {
             log.info("Output to Zip : " + zipFile);
 
             for (String file : this.fileList) {
-                log.info("File Added : " + file);
+                String fromFullPath = sourceFullpath + File.separator + file;
+                log.info(String.format("File Added '%s' from '%s'", file, fromFullPath));
                 ZipEntry ze = new ZipEntry(file);
                 zos.putNextEntry(ze);
 
-                try (FileInputStream in = new FileInputStream(sourceFullpath + File.separator + file)) {
+                try (FileInputStream in = new FileInputStream(fromFullPath)) {
                     int len;
                     while ((len = in.read(buffer)) > 0) {
                         zos.write(buffer, 0, len);
