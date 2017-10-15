@@ -32,7 +32,11 @@ public class FileUserStorage implements UserStorage, ItemFactory {
 
     FileUserStorage(User user, File root) {
         this.user = Validate.notNull(user, "user");
-        this.root = Validate.notNull(root, "root");
+        try {
+            this.root = Validate.notNull(root, "root").getCanonicalFile();
+        } catch (IOException e) {
+            throw new RuntimeException("Root is invalid: " + root, e);
+        }
     }
 
     public User getUser() {
