@@ -89,6 +89,8 @@ public class ZipUtil {
      * @param node file or directory
      */
     public void generateFileList(File node) {
+        log.info("node: " + node);
+
         //add file only
         if (node.isFile()) {
             fileList.add(generateZipEntry(node.getAbsoluteFile().toString()));
@@ -96,7 +98,11 @@ public class ZipUtil {
 
         if (node.isDirectory()) {
             String[] subNote = node.list();
+            log.info("node children: " + node);
+
             if (subNote != null) {
+                log.info("node children: " + subNote.length);
+
                 for (String filename : subNote) {
                     generateFileList(new File(node, filename));
                 }
