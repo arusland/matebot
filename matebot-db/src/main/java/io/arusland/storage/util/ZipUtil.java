@@ -19,7 +19,7 @@ import java.util.zip.ZipOutputStream;
  * From http://www.mkyong.com/java/how-to-compress-files-in-zip-format/
  */
 public class ZipUtil {
-    private final Logger log = Logger.getLogger(getClass());
+    private static final Logger log = Logger.getLogger(ZipUtil.class);
     private final List<String> fileList;
     private final String sourceFullpath;
     private final File sourceDir;
@@ -36,6 +36,7 @@ public class ZipUtil {
     }
 
     public static void zipDir(List<File> files, File destinationZipFile) {
+        log.info("files: " + files);
         File dir = files.size() == 1 ? files.get(0) : files.get(0).getParentFile();
         ZipUtil appZip = new ZipUtil(dir);
         appZip.generateFileList(files);
