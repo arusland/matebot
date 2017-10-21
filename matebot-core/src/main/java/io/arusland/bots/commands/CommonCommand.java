@@ -257,14 +257,15 @@ public class CommonCommand extends BaseBotCommand {
             int mins = getInMinutes(in);
 
             Calendar cal = Calendar.getInstance();
+            cal.setTime(getContext().toClient(user, cal.getTime()));
             cal.add(Calendar.MINUTE, mins);
 
             if (cal.get(Calendar.SECOND) > 0) {
                 cal.add(Calendar.MINUTE, 1);
             }
 
-            String cmdText = cal.get(Calendar.HOUR_OF_DAY) + ":"
-                    + cal.get(Calendar.MINUTE) + " " + text;
+            String cmdText = String.format("%d:%d %s",
+                    cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), text);
             Item alertItem = storage.addItem("/", cmdText);
 
             if (alertItem instanceof AlertItem) {
