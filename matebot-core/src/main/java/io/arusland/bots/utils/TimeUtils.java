@@ -8,9 +8,13 @@ import java.util.Date;
  */
 public class TimeUtils {
     public static String friendlyTimespan(Date date) {
-        long now = date.getTime() - System.currentTimeMillis();
+        return friendlyTimespan(date, System.currentTimeMillis());
+    }
 
-        if (now > 0) {
+    protected static String friendlyTimespan(Date date, long currentTimeMS) {
+        long now = date.getTime() - currentTimeMS;
+
+        if (now >= 0) {
             int sec = (int) (now / 1000);
 
             if (sec == 0) {
@@ -43,7 +47,7 @@ public class TimeUtils {
             }
 
             int months = days / 30;
-            hours = hours % 60;
+            hours = hours % 24;
 
             if (months == 0) {
                 String res = days + " days";
@@ -55,7 +59,26 @@ public class TimeUtils {
                 return res;
             }
 
-            return months + " months (" + days + " days)";
+            int years = days / 365;
+
+            if (years == 0) {
+                return months + " months (" + days + " days)";
+            }
+
+            String res = years + " years";
+            months %= 12;
+
+            if (months == 0) {
+                days %= 365;
+
+                if (days > 0) {
+                    res += " " + days + " days";
+                }
+
+                return res;
+            } else {
+                return years + " years " + months + " months";
+            }
         }
 
         return "";
@@ -69,6 +92,7 @@ public class TimeUtils {
                 .replace("days", "d.")
                 .replace("several", "")
                 .replace("months", "mon.")
+                .replace("years", "y.")
                 .replaceAll("  +", " ");
     }
 
