@@ -18,29 +18,29 @@ public class TimeUtils {
             int sec = (int) (now / 1000);
 
             if (sec == 0) {
-                return "several seconds";
+                return "few moments";
             }
 
             int mins = sec / 60;
 
             if (mins == 0) {
-                return sec + " seconds";
+                return formatValue(sec, "second");
             }
 
             int hours = mins / 60;
 
             if (hours == 0) {
-                return mins + " minutes";
+                return formatValue(mins, "minute");
             }
 
             mins = mins % 60;
             int days = hours / 24;
 
             if (days == 0) {
-                String res = hours + " hours";
+                String res = formatValue(hours, "hour");
 
                 if (mins > 0) {
-                    res += " " + mins + " minutes";
+                    res += " " + formatValue(mins, "minute");
                 }
 
                 return res;
@@ -50,10 +50,10 @@ public class TimeUtils {
             hours = hours % 24;
 
             if (months == 0) {
-                String res = days + " days";
+                String res = formatValue(days, "day");
 
                 if (hours > 0) {
-                    res += " " + hours + " hours";
+                    res += " " + formatValue(hours, "hour");
                 }
 
                 return res;
@@ -62,22 +62,22 @@ public class TimeUtils {
             int years = days / 365;
 
             if (years == 0) {
-                return months + " months (" + days + " days)";
+                return formatValue(months, "month") + " (" + formatValue(days, "day") + ")";
             }
 
-            String res = years + " years";
+            String res = formatValue(years, "year");
             months %= 12;
 
             if (months == 0) {
                 days %= 365;
 
                 if (days > 0) {
-                    res += " " + days + " days";
+                    res += " " + formatValue(days, "day");
                 }
 
                 return res;
             } else {
-                return years + " years " + months + " months";
+                return res + " " + formatValue(months, "month");
             }
         }
 
@@ -85,14 +85,18 @@ public class TimeUtils {
     }
 
     public static String friendlyTimespanShort(Date nextTime) {
-        return friendlyTimespan(nextTime)
-                .replace("hours", "h.")
-                .replace("minutes", "m.")
-                .replace("seconds", "s.")
-                .replace("days", "d.")
-                .replace("several", "")
-                .replace("months", "mon.")
-                .replace("years", "y.")
+        return friendlyTimespanShort(nextTime, System.currentTimeMillis());
+    }
+
+    public static String friendlyTimespanShort(Date nextTime, long currentTimeMS) {
+        return friendlyTimespan(nextTime, currentTimeMS)
+                .replaceAll("hours?", "h.")
+                .replaceAll("minutes?", "m.")
+                .replaceAll("seconds?", "s.")
+                .replaceAll("days?", "d.")
+                .replaceAll("several", "")
+                .replaceAll("months?", "mon.")
+                .replaceAll("years?", "y.")
                 .replaceAll("  +", " ");
     }
 
@@ -129,5 +133,13 @@ public class TimeUtils {
         }
 
         return lastDayEnd;
+    }
+
+    private static String formatValue(int value, String type) {
+        return String.format("%d %s", value, ifPlural(value, type));
+    }
+
+    private static String ifPlural(int value, String type) {
+        return value > 1 ? type + "s" : type;
     }
 }
