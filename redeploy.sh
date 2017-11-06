@@ -1,10 +1,8 @@
 #!/bin/bash
 
 sdir="$(dirname $0)"
-pid=$(ps -eaf | awk '$10=="./matebot.jar" {print $2}' | head -1)
 
 echo "Script dir=$sdir"
-echo "pid=$pid"
 
 cd $sdir
 
@@ -19,10 +17,8 @@ if [ $OUT != 0 ]; then
    exit $OUT
 fi
 
-if [ "$pid" != "" ]; then
-  echo "Killing process $pid..."
-  kill -9 $pid
-fi
+echo "Killing all started matebot instances..."
+pgrep -a -f matebot.jar | awk '{print $1;}' | while read -r a; do kill -9 $a; done
 
 rm ./dist/*.jar
 cp ./matebot-core/target/matebot-core-*-jar-with-dependencies.jar ./dist/matebot.jar
