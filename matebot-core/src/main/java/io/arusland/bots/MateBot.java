@@ -65,12 +65,15 @@ public class MateBot extends BaseCommandBot implements BotContext {
         log.info("PID - " + ProcessUtil.getCurrentPID());
         log.info("Config file - " + configInput.getConfigFile());
         log.info("Db directory - " + configInput.getMatebotDbRoot());
-        ProcessUtil.writePIDSafe(new File("./logs"));
         rerunAlerts();
         sendHelloMessage();
     }
 
     public static void main(String[] args) {
+        if (!ProcessUtil.writePID(new File("./logs"))) {
+            throw new RuntimeException("Another instance of matebot already started!");
+        }
+
         start(args);
     }
 
