@@ -7,7 +7,7 @@ pgrep -a -f matebot.jar | awk '{print $1;}' | while read -r a; do kill -9 $a; do
 
 cd $sdir
 
-if [ "" == "$1" ]
+if [ -z "$1" ]
 then
     MB_START_REASON=restart
 else
