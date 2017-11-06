@@ -6,6 +6,7 @@ import io.arusland.bots.utils.ExecUtils;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.AbsSender;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 
 /**
@@ -26,7 +27,8 @@ public class ShowProcessList extends BaseBotCommand {
 
         try {
             String pid = getPid();
-            String content = "PID - " + pid + "\n\n";
+            String content = String.format("Current dir: %s\nPID - %s\n\n",
+                    new File(".").getCanonicalPath(), pid);
             String output = ExecUtils.runCommand("jps");
             sendMessage(chatId, content + output);
         } catch (Exception e) {
