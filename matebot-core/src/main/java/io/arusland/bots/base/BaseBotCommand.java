@@ -81,4 +81,8 @@ public abstract class BaseBotCommand extends BotCommand {
     public boolean isVisible() {
         return true;
     }
+
+    public boolean isAdminCommand() {
+        return false;
+    }
 }

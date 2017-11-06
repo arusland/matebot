@@ -58,6 +58,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
         register(new ShowAlertsTomorrow(this));
         register(new ShowAlertsWeek(this));
         register(new ShowAlertsMonth(this));
+        register(new RestartCommand(this));
         registerAll(ItemCommand.listAll(this));
 
         log.info("MateBot started v0.1");
@@ -93,6 +94,11 @@ public class MateBot extends BaseCommandBot implements BotContext {
     @Override
     public String getBotToken() {
         return configInput.getMatebotToken();
+    }
+
+    @Override
+    protected BotContext getContext() {
+        return this;
     }
 
     @Override
@@ -205,6 +211,12 @@ public class MateBot extends BaseCommandBot implements BotContext {
     public List<AlertItem> nextAlerts(Date dateTo) {
         return alertsRunner.nextAlerts(dateTo);
     }
+
+    @Override
+    public boolean isAdmin(long userId) {
+        return configInput.getAdminId() == userId;
+    }
+
 
     @Override
     public String getCurrentPath(User user) {

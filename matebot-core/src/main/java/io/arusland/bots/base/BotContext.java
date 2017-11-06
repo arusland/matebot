@@ -91,4 +91,6 @@ public interface BotContext {
     TimeZone getTimeZone(User user);
 
     List<AlertItem> nextAlerts(Date dateTo);
+
+    boolean isAdmin(long userId);
 }

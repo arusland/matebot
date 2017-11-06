@@ -27,8 +27,10 @@ public class StartCommand extends BaseBotCommand implements Comparator<BaseBotCo
         List<BaseBotCommand> commands = new ArrayList<>(getContext().getRegisteredCommands());
         commands.sort(this);
 
+        boolean isAdmin = getContext().isAdmin(update.getMessage().getFrom().getId());
+
         for (BaseBotCommand command : commands) {
-            if (command.isVisible()) {
+            if (command.isVisible() || isAdmin) {
                 sb.append("/");
                 sb.append(command.getCommandIdentifier());
                 if (StringUtils.isNotBlank(command.getDescription())) {

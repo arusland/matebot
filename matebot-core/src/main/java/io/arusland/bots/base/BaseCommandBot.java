@@ -27,6 +27,8 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
         super();
     }
 
+    protected abstract BotContext getContext();
+
     protected void register(BaseBotCommand command) {
         commandsMap.put(command.getCommandIdentifier(), command);
     }
@@ -70,6 +72,13 @@ public abstract class BaseCommandBot extends TelegramLongPollingBot {
         BaseBotCommand cmd = getHandlerCommand(message);
 
         if (cmd != null) {
+            boolean isAdmin = getContext().isAdmin(update.getMessage().getFrom().getId());
+
+            if (cmd.isAdminCommand() && !isAdmin) {
+                sendMessage(message.getChatId(), "⚠ Sorry, but this command only for admin!");
+                return true;
+            }
+
             log.info("Executing command: " + cmd.getCommandIdentifier());
             String[] commandSplit = message.getText().split(BotCommand.COMMAND_PARAMETER_SEPARATOR);
             String[] parameters = Arrays.copyOfRange(commandSplit, 1, commandSplit.length);

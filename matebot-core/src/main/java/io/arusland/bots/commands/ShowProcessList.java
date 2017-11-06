@@ -48,4 +48,9 @@ public class ShowProcessList extends BaseBotCommand {
     public boolean isVisible() {
         return false;
     }
+
+    @Override
+    public boolean isAdminCommand() {
+        return true;
+    }
 }
