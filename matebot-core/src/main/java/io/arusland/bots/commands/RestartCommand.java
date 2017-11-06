@@ -15,6 +15,7 @@ import java.io.IOException;
 public class RestartCommand extends BaseBotCommand {
     public RestartCommand(BotContext context) {
         super("restart", "Restart the bot", context);
+        setOrder(40);
     }
 
     @Override

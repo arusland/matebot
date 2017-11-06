@@ -18,6 +18,7 @@ import java.util.List;
 public class KillBotCommand extends BaseBotCommand {
     public KillBotCommand(BotContext context) {
         super("kill", "Kills current bot", context);
+        setOrder(40);
     }
 
     @Override
@@ -30,5 +31,10 @@ public class KillBotCommand extends BaseBotCommand {
     @Override
     public boolean isVisible() {
         return false;
+    }
+
+    @Override
+    public boolean isAdminCommand() {
+        return true;
     }
 }

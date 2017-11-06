@@ -17,6 +17,7 @@ import java.lang.management.ManagementFactory;
 public class ShowProcessList extends BaseBotCommand {
     public ShowProcessList(BotContext context) {
         super("ps", "Show java processes list", context);
+        setOrder(40);
     }
 
     @Override
