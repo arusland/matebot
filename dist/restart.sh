@@ -16,4 +16,4 @@ fi
 
 echo reason: "$MB_START_REASON"
 
-java -DstartReason=$MB_START_REASON -jar ./matebot.jar &
+java -Dfile.encoding=UTF-8 -DstartReason=$MB_START_REASON -jar ./matebot.jar &
