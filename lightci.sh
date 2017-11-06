@@ -3,10 +3,10 @@
 script_dir="$(dirname $0)"
 url=https://github.com/arusland/matebot.git
 
-echo "Gettting current commit of $url"
+echo "Getting current commit of $url"
 
 cur_commit="$(git ls-remote $url master | cut -f 1)"
-filename="/tmp/$(echo "$url" | sha1sum | awk '{print $1}')"
+filename="$script_dir/$(echo "$url" | sha1sum | awk '{print $1}')"
 
 if [ -f "$filename" ]
 then
