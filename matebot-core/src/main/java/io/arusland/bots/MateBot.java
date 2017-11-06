@@ -335,7 +335,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
                 TimeZoneClient client = getTimeZoneClient(userId);
                 sendMessage((long) userId, "Matebot started at " + client.format(new Date())
-                        + (StringUtils.isNotBlank(reason) ? " Reason: redeploy" : ""));
+                        + (StringUtils.isNotBlank(reason) ? "\nReason: " + reason : ""));
             }
         });
     }
