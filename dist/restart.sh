@@ -7,4 +7,8 @@ pgrep -a -f matebot.jar | awk '{print $1;}' | while read -r a; do kill -9 $a; do
 
 cd $sdir
 
-java -DstartReason=restart -jar ./matebot.jar &
+if [ "" == "$MB_START_REASON" ]; then
+    MB_START_REASON=restart
+fi
+
+java -DstartReason=$MB_START_REASON -jar ./matebot.jar &
