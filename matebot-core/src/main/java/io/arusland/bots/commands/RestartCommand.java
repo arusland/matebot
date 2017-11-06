@@ -28,8 +28,6 @@ public class RestartCommand extends BaseBotCommand {
         } catch (IOException e) {
             log.error(e.toString());
         }
-
-        System.exit(0);
     }
 
     @Override
