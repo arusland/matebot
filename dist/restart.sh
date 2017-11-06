@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sleep 2
+
 sdir="$(dirname $0)"
 
 echo "Killing all started matebot instances..."
