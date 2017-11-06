@@ -304,7 +304,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
                 sb.append("\n\nRemind me in:\n");
                 sb.append("/1min  /5min  /10min  /30min  /1hour");
 
-                int userIdMain =(int) ((long) userId);
+                int userIdMain = (int) ((long) userId);
 
                 addShortcutCommand(userIdMain, removeFile, "rm", alertItem.getFullPath(), "0");
                 addShortcutCommand(userIdMain, "/1min", "remind", alertItem.getMessage(), "1min");
@@ -329,10 +329,13 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     private void sendHelloMessage() {
+        String reason = System.getProperty("startReason");
         configInput.getAllowedUsersIds().forEach(userId -> {
             if (userId > 0) {
+
                 TimeZoneClient client = getTimeZoneClient(userId);
-                sendMessage((long) userId, "Matebot started at " + client.format(new Date()));
+                sendMessage((long) userId, "Matebot started at " + client.format(new Date())
+                        + (StringUtils.isNotBlank(reason) ? " Reason: redeploy" : ""));
             }
         });
     }

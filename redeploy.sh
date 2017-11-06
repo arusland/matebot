@@ -29,4 +29,4 @@ cp ./matebot-core/target/matebot-core-*-jar-with-dependencies.jar ./dist/matebot
 
 cd $sdir/dist
 
-java -jar ./matebot.jar &
+java -DstartReason=redeploy -jar ./matebot.jar &
