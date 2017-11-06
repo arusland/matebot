@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sh restart.sh &
+nohup sh restart.sh &
