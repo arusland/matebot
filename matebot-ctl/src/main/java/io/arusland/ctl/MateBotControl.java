@@ -17,8 +17,8 @@ public class MateBotControl {
                 return;
             }
 
-            String output = ExecUtils.runCommand("sh", "restart.sh");
-            ctx.result(output);
+            ExecUtils.runCommand("sh", "restart.sh");
+            ctx.result("OK");
         });
     }
 }
