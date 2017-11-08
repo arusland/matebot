@@ -1,9 +1,11 @@
 /application.properties
 /matebot-core/target
-/.idea
-/*.iml
+/matebot-ctl/target
+.idea
+*.iml
 /matebot-core/*.iml
 /matebot-db/*.iml
+/matebot-ctl/*.iml
 /matebot-db/target
 /matedb_
 /dist/application.properties
@@ -12,5 +14,5 @@
 /dist/matedb_
 /matebot-web/target
 /matebot-web/*.iml
-/dist/matebot.jar
+/dist/*.jar
 5ce10b8624fa3471cc0f714f2d21ae1a965f0cd8

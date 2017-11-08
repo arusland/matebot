@@ -13,6 +13,7 @@
         <module>matebot-core</module>
         <module>matebot-db</module>
         <module>matebot-web</module>
+        <module>matebot-ctl</module>
     </modules>
 
     <licenses>
