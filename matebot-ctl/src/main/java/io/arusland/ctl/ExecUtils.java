@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  * @author Ruslan Absalyamov
- * @since 08.11.2017
+ * @since 2017-11-08
  */
 public class ExecUtils {
     public static void runCommand(String... cmd) throws IOException {
