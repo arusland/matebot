@@ -3,15 +3,15 @@ package io.arusland.storage.file;
 import io.arusland.storage.TestUtils;
 import io.arusland.storage.TimeZoneClient;
 import io.arusland.storage.TimeZoneClientStandard;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.time.chrono.ChronoPeriod;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Created by ruslan on 10.12.2016.
@@ -410,7 +410,7 @@ public class AlertInfoTest {
         assertEquals(month, (int) info.month);
         assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
-        assertEquals(1, (int)info.period);
+        assertEquals(1, (int) info.period);
         assertEquals(ChronoUnit.MINUTES, info.periodType);
         assertEquals("Alert message!", info.message);
         assertEquals(String.format("23:59/1 %d:%d:%d Alert message!", day, month, year), info.content);
@@ -431,7 +431,7 @@ public class AlertInfoTest {
         assertEquals(month, (int) info.month);
         assertEquals(year, (int) info.year);
         assertEquals(0, info.weekDays);
-        assertEquals(3, (int)info.period);
+        assertEquals(3, (int) info.period);
         assertEquals(ChronoUnit.HOURS, info.periodType);
         assertEquals("Alert message!", info.message);
         assertEquals(String.format("23/3:59 %d:%d:%d Alert message!", day, month, year), info.content);
@@ -447,7 +447,7 @@ public class AlertInfoTest {
         assertNull(info.day);
         assertNull(info.month);
         assertNull(info.year);
-        assertEquals(4, (int)info.period);
+        assertEquals(4, (int) info.period);
         assertEquals(ChronoUnit.MINUTES, info.periodType);
         assertEquals(AlertInfo.DAY_FRIDAY | AlertInfo.DAY_SATURDAY | AlertInfo.DAY_SUNDAY, info.weekDays);
         assertEquals("", info.message);
@@ -466,7 +466,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("", info.message);
-        assertEquals(2, (int)info.period);
+        assertEquals(2, (int) info.period);
         assertEquals(ChronoUnit.DAYS, info.periodType);
         assertEquals("14:33 7/2:", info.content);
     }
@@ -483,7 +483,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("Hi folks!", info.message);
-        assertEquals(1, (int)info.period);
+        assertEquals(1, (int) info.period);
         assertEquals(ChronoUnit.MONTHS, info.periodType);
         assertEquals("07:3 23:2/1  Hi folks!", info.content);
     }
@@ -500,7 +500,7 @@ public class AlertInfoTest {
         assertNull(info.year);
         assertEquals(0, info.weekDays);
         assertEquals("Hi folks!", info.message);
-        assertEquals(3, (int)info.period);
+        assertEquals(3, (int) info.period);
         assertEquals(ChronoUnit.MONTHS, info.periodType);
         assertEquals("07:3 23:2/3:  Hi folks!", info.content);
     }
@@ -517,7 +517,7 @@ public class AlertInfoTest {
         assertEquals(2012, (int) info.year);
         assertEquals(0, info.weekDays);
         assertEquals("Malik birthday", info.message);
-        assertEquals(5, (int)info.period);
+        assertEquals(5, (int) info.period);
         assertEquals(ChronoUnit.YEARS, info.periodType);
         assertEquals("7:43 05:10:2012/5 Malik birthday", info.content);
     }

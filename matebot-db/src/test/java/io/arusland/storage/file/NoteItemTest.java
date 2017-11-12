@@ -2,9 +2,9 @@ package io.arusland.storage.file;
 
 import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,7 +13,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static io.arusland.storage.TestUtils.assertNoneBlank;
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Created by ruslan on 24.12.2016.
@@ -23,13 +25,13 @@ public class NoteItemTest {
     private Path root;
     private FileStorage fileStorage;
 
-    @Before
+    @BeforeEach
     public void beforeEachTest() throws IOException {
         root = Files.createTempDirectory("matebot");
         fileStorage = new FileStorage(root.toString(), Collections.emptyMap());
     }
 
-    @After
+    @AfterEach
     public void afterEachTest() throws IOException {
         FileUtils.deleteDirectory(root.toFile());
     }

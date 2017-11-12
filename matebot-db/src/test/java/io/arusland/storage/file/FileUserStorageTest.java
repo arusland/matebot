@@ -2,7 +2,9 @@ package io.arusland.storage.file;
 
 import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.arusland.storage.TestUtils.assertNoneBlank;
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Created by ruslan on 07.12.2016.
@@ -21,13 +23,13 @@ public class FileUserStorageTest {
     private Path root;
     private FileStorage fileStorage;
 
-    @Before
+    @BeforeEach
     public void beforeEachTest() throws IOException {
         root = Files.createTempDirectory("matebot");
         fileStorage = new FileStorage(root.toString(), Collections.emptyMap());
     }
 
-    @After
+    @AfterEach
     public void afterEachTest() throws IOException {
         FileUtils.deleteDirectory(root.toFile());
     }
@@ -257,20 +259,19 @@ public class FileUserStorageTest {
         User user = new User(122342342L, "Foo");
         UserStorage storage = getOrCreateStorage(user);
         File file1 = TestUtils.createTempFile(41);
+        Item item = storage.addItem("/audios", "newname.mp3", file1);
+        file1.delete();
 
-        try {
-            Item item = storage.addItem("/audios", "newname.mp3", file1);
-            file1.delete();
+        assertNotNull(item);
+        File file2 = TestUtils.createTempFile(43);
 
-            assertNotNull(item);
-            file1 = TestUtils.createTempFile(43);
-            storage.addItem(item.getFullPath(), "another.mp4", file1);
-            Assert.fail();
-        } catch (StorageException ex) {
-            assertTrue(ex.getMessage().startsWith("Cannot write file into file: "));
-        } finally {
-            file1.delete();
-        }
+
+        StorageException ex = assertThrows(StorageException.class, () ->
+                storage.addItem(item.getFullPath(), "another.mp4", file1)
+        );
+        assertTrue(ex.getMessage().startsWith("Cannot write file into file: "));
+
+        file2.delete();
     }
 
     @Test
@@ -279,19 +280,20 @@ public class FileUserStorageTest {
         UserStorage storage = getOrCreateStorage(user);
         File file = TestUtils.createTempFile(41);
 
-        try {
-            Item item = storage.addItem("/audios", "newname.mp3", file);
-            file.delete();
+        Item item = storage.addItem("/audios", "newname.mp3", file);
+        file.delete();
 
-            assertNotNull(item);
-            file = TestUtils.createTempFile(43);
-            storage.addItem("/audios", "newname.mp3", file);
-            Assert.fail();
-        } catch (StorageException ex) {
-            assertTrue(ex.getMessage().startsWith("File already exists: "));
-        } finally {
-            file.delete();
-        }
+        assertNotNull(item);
+
+        File file2 = TestUtils.createTempFile(43);
+
+        StorageException ex = assertThrows(StorageException.class, () ->
+                storage.addItem("/audios", "newname.mp3", file2)
+        );
+
+        assertTrue(ex.getMessage().startsWith("File already exists: "));
+
+        file2.delete();
     }
 
     @Test

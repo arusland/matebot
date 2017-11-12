@@ -2,9 +2,9 @@ package io.arusland.storage.file;
 
 import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +14,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static io.arusland.storage.TestUtils.assertNoneBlank;
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Created by ruslan on 14.12.2016.
@@ -23,13 +24,13 @@ public class AlertItemTest {
     private Path root;
     private FileStorage fileStorage;
 
-    @Before
+    @BeforeEach
     public void beforeEachTest() throws IOException {
         root = Files.createTempDirectory("matebot");
         fileStorage = new FileStorage(root.toString(), Collections.emptyMap());
     }
 
-    @After
+    @AfterEach
     public void afterEachTest() throws IOException {
         FileUtils.deleteDirectory(root.toFile());
     }
@@ -108,6 +109,16 @@ public class AlertItemTest {
             assertEquals("Go to bed!", alerts.get(0).getMessage());
             assertEquals("Ты можешь еще поспать!", alerts.get(1).getMessage());
         }
+    }
+
+    @Test
+    public void testFailWhenWhenMultiplePeriodAdded() {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+
+        StorageException ex = assertThrows(StorageException.class, () -> storage.addItem("/", "23/2:58/1 Go home, stop coding!"));
+
+        assertEquals("Period can be applied only once", ex.getMessage());
     }
 
     private UserStorage getOrCreateStorage(User user) {

@@ -3,6 +3,7 @@ package io.arusland.storage.file;
 import io.arusland.storage.*;
 import io.arusland.storage.util.ZipUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
 
@@ -87,9 +88,15 @@ public class FileUserStorage implements UserStorage, ItemFactory {
     public Item addItem(String path, String content) {
         AlertInfo alertInfo = AlertInfo.parse(content, getTimeZoneClient());
 
-        if (alertInfo != null && alertInfo.valid) {
-            log.info("Parsed alert: " + alertInfo);
-            return tryAddAlertItem(path, alertInfo);
+        if (alertInfo != null) {
+            if (alertInfo.valid) {
+                log.info("Parsed alert: " + alertInfo);
+                return tryAddAlertItem(path, alertInfo);
+            }
+
+            if (!alertInfo.valid && StringUtils.isNotBlank(alertInfo.validMessage)) {
+                throw new StorageException(alertInfo.validMessage);
+            }
         }
 
         NoteInfo noteInfo = NoteInfo.parse(content);
@@ -342,17 +349,17 @@ public class FileUserStorage implements UserStorage, ItemFactory {
             List<FileItem> children = parent.listItems();
             Optional<FileNoteItem> withTheSameName = children.stream()
                     .filter(p -> !p.isDirectory() && p.getTitle().equals(info.title))
-                    .map(p -> (FileNoteItem)p)
+                    .map(p -> (FileNoteItem) p)
                     .findFirst();
 
             if (withTheSameName.isPresent()) {
                 FileNoteItem fitem = withTheSameName.get();
                 File file = fitem.getFile();
-                StringBuilder sb  = new StringBuilder(fitem.getContent());
+                StringBuilder sb = new StringBuilder(fitem.getContent());
                 sb.append("\n\n");
                 sb.append(info.content);
 
-                NoteInfo infoNew  = NoteInfo.parse(sb.toString());
+                NoteInfo infoNew = NoteInfo.parse(sb.toString());
 
                 try {
                     FileUtils.writeStringToFile(file, infoNew.content, "UTF-8");

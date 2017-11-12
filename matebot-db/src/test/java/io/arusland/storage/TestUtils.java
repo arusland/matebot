@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  * Created by ruslan on 07.12.2016.
