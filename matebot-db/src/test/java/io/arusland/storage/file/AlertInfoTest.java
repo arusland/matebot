@@ -5,6 +5,8 @@ import io.arusland.storage.TimeZoneClient;
 import io.arusland.storage.TimeZoneClientStandard;
 import org.junit.Test;
 
+import java.time.chrono.ChronoPeriod;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -188,7 +190,6 @@ public class AlertInfoTest {
         assertEquals("", info.message);
         assertEquals("07:3 23:2:", info.content);
     }
-
 
     @Test
     public void testFullWithoutYearAndMonthWithMessage() {
@@ -394,7 +395,166 @@ public class AlertInfoTest {
         assertEquals(String.format("23:59 %d:%d:%d 5-8 strange message", day, month, year), info.content);
     }
 
+    @Test
+    public void testShortWithMessageAndPeriodInMinutes() {
+        AlertInfo info = parseInfo("23:59/1 Alert message!");
+        Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
+
+        assertTrue(info.valid);
+        assertEquals(23, info.hour);
+        assertEquals(59, info.minute);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals(1, (int)info.period);
+        assertEquals(ChronoUnit.MINUTES, info.periodType);
+        assertEquals("Alert message!", info.message);
+        assertEquals(String.format("23:59/1 %d:%d:%d Alert message!", day, month, year), info.content);
+    }
+
+    @Test
+    public void testShortWithMessageAndPeriodInHours() {
+        AlertInfo info = parseInfo("23/3:59 Alert message!");
+        Calendar cal = calcNextDayAfterTime(info);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DATE);
+
+        assertTrue(info.valid);
+        assertEquals(23, info.hour);
+        assertEquals(59, info.minute);
+        assertEquals(day, (int) info.day);
+        assertEquals(month, (int) info.month);
+        assertEquals(year, (int) info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals(3, (int)info.period);
+        assertEquals(ChronoUnit.HOURS, info.periodType);
+        assertEquals("Alert message!", info.message);
+        assertEquals(String.format("23/3:59 %d:%d:%d Alert message!", day, month, year), info.content);
+    }
+
+    @Test
+    public void testShortWeekDaysWithoutMessageAndPeriodInMinutes() {
+        AlertInfo info = parseInfo("23:59/4 5-7");
+
+        assertTrue(info.valid);
+        assertEquals(23, info.hour);
+        assertEquals(59, info.minute);
+        assertNull(info.day);
+        assertNull(info.month);
+        assertNull(info.year);
+        assertEquals(4, (int)info.period);
+        assertEquals(ChronoUnit.MINUTES, info.periodType);
+        assertEquals(AlertInfo.DAY_FRIDAY | AlertInfo.DAY_SATURDAY | AlertInfo.DAY_SUNDAY, info.weekDays);
+        assertEquals("", info.message);
+        assertEquals("23:59/4 5-7", info.content);
+    }
+
+    @Test
+    public void testFullWithoutYearAndMonthWithPeriod() {
+        AlertInfo info = parseInfo("14:33 7/2:");
+
+        assertTrue(info.valid);
+        assertEquals(14, info.hour);
+        assertEquals(33, info.minute);
+        assertEquals(7, (int) info.day);
+        assertNull(info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("", info.message);
+        assertEquals(2, (int)info.period);
+        assertEquals(ChronoUnit.DAYS, info.periodType);
+        assertEquals("14:33 7/2:", info.content);
+    }
+
+    @Test
+    public void testFullWithoutYearWithMessageWithPeriod() {
+        AlertInfo info = parseInfo("07:3 23:2/1  Hi folks!");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(3, info.minute);
+        assertEquals(23, (int) info.day);
+        assertEquals(2, (int) info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("Hi folks!", info.message);
+        assertEquals(1, (int)info.period);
+        assertEquals(ChronoUnit.MONTHS, info.periodType);
+        assertEquals("07:3 23:2/1  Hi folks!", info.content);
+    }
+
+    @Test
+    public void testFullWithoutYearWithMessage2WithPeriod() {
+        AlertInfo info = parseInfo("07:3 23:2/3:  Hi folks!");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(3, info.minute);
+        assertEquals(23, (int) info.day);
+        assertEquals(2, (int) info.month);
+        assertNull(info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("Hi folks!", info.message);
+        assertEquals(3, (int)info.period);
+        assertEquals(ChronoUnit.MONTHS, info.periodType);
+        assertEquals("07:3 23:2/3:  Hi folks!", info.content);
+    }
+
+    @Test
+    public void testFullWithMessageWithPeriod() {
+        AlertInfo info = parseInfo("7:43 05:10:2012/5 Malik birthday ");
+
+        assertTrue(info.valid);
+        assertEquals(7, info.hour);
+        assertEquals(43, info.minute);
+        assertEquals(5, (int) info.day);
+        assertEquals(10, (int) info.month);
+        assertEquals(2012, (int) info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("Malik birthday", info.message);
+        assertEquals(5, (int)info.period);
+        assertEquals(ChronoUnit.YEARS, info.periodType);
+        assertEquals("7:43 05:10:2012/5 Malik birthday", info.content);
+    }
+
     // invalid dates tests
+
+    @Test
+    public void testShortWeekDaysWithoutMessageAndPeriodInvalid() {
+        AlertInfo info = parseInfo("23/1:59/4 5-7");
+
+        assertFalse(info.valid);
+        assertEquals("Period can be applied only once", info.validMessage);
+    }
+
+    @Test
+    public void testFullWithDayWithoutMessageAndPeriodInvalid() {
+        AlertInfo info = parseInfo("23/1:59/4 13:");
+
+        assertFalse(info.valid);
+        assertEquals("Period can be applied only once", info.validMessage);
+    }
+
+    @Test
+    public void testFullWithMonthWithoutMessageAndPeriodInvalid() {
+        AlertInfo info = parseInfo("23/1:59/4 13:04/2");
+
+        assertFalse(info.valid);
+        assertEquals("Period can be applied only once", info.validMessage);
+    }
+
+    @Test
+    public void testFullWithoutMessageAndPeriodInvalid() {
+        AlertInfo info = parseInfo("23:59 13:04/2:2019/1");
+
+        assertFalse(info.valid);
+        assertEquals("Period can be applied only once", info.validMessage);
+    }
 
     @Test
     public void testFullWithMessageInvalid() {

@@ -22,7 +22,7 @@
         <connection>scm:git:git://github.com/arusland/matebot.git</connection>
         <developerConnection>scm:git:git@github.com:arusland/matebot.git</developerConnection>
     </scm>
-   
+
     <developers>
         <developer>
             <name>Ruslan Absalyamov</name>
@@ -38,11 +38,11 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>    
+    </properties>
 
     <dependencies>
         <dependency>

@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -298,7 +297,7 @@ public class FileUserStorage implements UserStorage, ItemFactory {
             String content = FileUtils.readFileToString(file, "UTF-8");
             AlertInfo info = AlertInfo.parse(content, getTimeZoneClient());
 
-            if (info != null) {
+            if (info != null && info.valid) {
                 return Optional.of(new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient()));
             }
         } catch (IOException e) {
