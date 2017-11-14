@@ -39,7 +39,17 @@ public interface AlertItem extends Item<AlertItem> {
     String getSource();
 
     /**
-     * Alert is not active.
+     * Alert can be scheduled.
      */
     boolean isActive();
+
+    /**
+     * Returns true if alert has active period.
+     */
+    boolean isPeriodActive();
+
+    /**
+     * Cancel active period and it will be recalculated after next alert time.
+     */
+    void cancelActivePeriod();
 }

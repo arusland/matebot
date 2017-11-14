@@ -305,13 +305,17 @@ public class FileUserStorage implements UserStorage, ItemFactory {
             AlertInfo info = AlertInfo.parse(content, getTimeZoneClient());
 
             if (info != null && info.valid) {
-                return Optional.of(new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient()));
+                return Optional.of(new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient(), this::onPeriodTimeUpdate));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         return Optional.empty();
+    }
+
+    private void onPeriodTimeUpdate(FileAlertItem fileAlertItem) {
+        // TODO: save new period time
     }
 
     private FileAlertItem tryAddAlertItem(String path, AlertInfo info) {
@@ -332,7 +336,7 @@ public class FileUserStorage implements UserStorage, ItemFactory {
             }
 
             ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-            return new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient());
+            return new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient(), this::onPeriodTimeUpdate);
         }
 
         return null;

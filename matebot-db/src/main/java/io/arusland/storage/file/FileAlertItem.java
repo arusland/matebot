@@ -7,7 +7,10 @@ import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toList;
 
@@ -19,14 +22,18 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private static final int MESSAGE_TITLE_LENGTH = 40;
     private final AlertInfo info;
     private final TimeZoneClient timeZoneClient;
+    private final Consumer<FileAlertItem> onLastActivePeriodUpdate;
     private Date nextDate;
     private String title;
+    private Date lastActivePeriodTime;
 
     public FileAlertItem(User user, File file, ItemPath path, AlertInfo info,
-                         ItemFactory itemFactory, TimeZoneClient timeZoneClient) {
+                         ItemFactory itemFactory, TimeZoneClient timeZoneClient,
+                         Consumer<FileAlertItem> onLastActivePeriodUpdate) {
         super(user, ItemType.ALERTS, file, path, itemFactory);
         this.info = Validate.notNull(info, "info");
         this.timeZoneClient = Validate.notNull(timeZoneClient, "timeZoneClient");
+        this.onLastActivePeriodUpdate = Validate.notNull(onLastActivePeriodUpdate, "onLastActivePeriodUpdate");
     }
 
     @Override
@@ -63,6 +70,17 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         calcNextState();
 
         return nextDate != null && System.currentTimeMillis() < nextDate.getTime();
+    }
+
+    @Override
+    public boolean isPeriodActive() {
+        return isActive() && lastActivePeriodTime != null && nextDate.after(lastActivePeriodTime);
+    }
+
+    @Override
+    public void cancelActivePeriod() {
+        lastActivePeriodTime = null;
+        calcNextState();
     }
 
     @Override
@@ -172,7 +190,52 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         }
     }
 
+    /**
+     * Beginning of active period. Server time (not client).
+     */
+    public Date getLastActivePeriodTime() {
+        return lastActivePeriodTime;
+    }
+
+    /**
+     * Beginning of active period. Server time (not client).
+     */
+    public void setLastActivePeriodTime(Date lastActivePeriodTime) {
+        this.lastActivePeriodTime = lastActivePeriodTime;
+    }
+
     private void refreshState(Calendar clientTime) {
+        this.nextDate = timeZoneClient.fromClient(clientTime.getTime());
+
+        if (info.period != null) {
+            long now = System.currentTimeMillis();
+            long timeInMs = calcPeriodInMs(info.period, info.periodType);
+
+            // when launch first time
+            if (lastActivePeriodTime == null) {
+                lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
+            } else {
+                if (lastActivePeriodTime.getTime() <= now) {
+                    long lastPeriod = lastActivePeriodTime.getTime();
+
+                    do {
+                        lastPeriod += timeInMs;
+                    } while (lastPeriod <= now);
+
+                    lastActivePeriodTime = new Date(lastPeriod);
+                }
+
+                if (lastActivePeriodTime.before(nextDate)) {
+                    nextDate = lastActivePeriodTime;
+                } else {
+                    // recalc new active period time
+                    lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
+                }
+            }
+
+            onLastActivePeriodUpdate.accept(this);
+        }
+
         String newTitle = String.format("%02d:%02d %02d:%02d:%d",
                 info.hour, info.minute,
                 clientTime.get(Calendar.DAY_OF_MONTH),
@@ -183,10 +246,14 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
             newTitle += " " + StringUtils.abbreviate(getMessage(), MESSAGE_TITLE_LENGTH);
         }
 
+
         this.title = newTitle;
-        this.nextDate = timeZoneClient.fromClient(clientTime.getTime());
 
         log.info(this);
+    }
+
+    private long calcPeriodInMs(Integer period, ChronoUnit periodType) {
+        return Duration.of(period, periodType).get(ChronoUnit.MILLIS);
     }
 
     private static List<Integer> getAlertDays(int flags) {
