@@ -1,17 +1,24 @@
 package io.arusland.storage.file;
 
+import com.google.gson.Gson;
 import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static io.arusland.storage.TestUtils.assertNoneBlank;
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Created by ruslan on 14.12.2016.
  */
 public class AlertItemTest {
+    private final SimpleDateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     private Path root;
     private FileStorage fileStorage;
 
@@ -28,6 +36,9 @@ public class AlertItemTest {
     public void beforeEachTest() throws IOException {
         root = Files.createTempDirectory("matebot");
         fileStorage = new FileStorage(root.toString(), Collections.emptyMap());
+
+        FileAlertItem.configure(() -> new Date());
+        AlertInfo.configure(() -> new Date());
     }
 
     @AfterEach
@@ -119,6 +130,84 @@ public class AlertItemTest {
         StorageException ex = assertThrows(StorageException.class, () -> storage.addItem("/", "23/2:58/1 Go home, stop coding!"));
 
         assertEquals("Period can be applied only once", ex.getMessage());
+    }
+
+    @Test
+    public void testAddingAlertItemWithPeriod() throws ParseException, IOException {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        AtomicLong currentTime = new AtomicLong();
+        currentTime.set(DF.parse("2016-05-12 12:45:36.123").getTime());
+
+        FileAlertItem.configure(() -> new Date(currentTime.get()));
+        AlertInfo.configure(() -> new Date(currentTime.get()));
+
+        FileAlertItem alert = (FileAlertItem) storage.addItem("/", "23:58/2 Go home, stop coding!");
+
+        assertTrue(alert.isActive());
+        assertNotNull(alert.nextTime());
+        assertEquals("2016-05-12 23:58:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-13 00:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:58/2 12:5:2016 Go home, stop coding!", model.getInput());
+        assertEquals("2016-05-13 00:00:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+    }
+
+    private static AlertModel getAlertModelFromFile(File file) throws IOException {
+        String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+        return new Gson().fromJson(content, AlertModel.class);
+    }
+
+    @Test
+    public void testLastActivePeriodTimeWhenTimeChanges() throws ParseException, IOException {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        AtomicLong currentTime = new AtomicLong();
+        currentTime.set(DF.parse("2016-05-12 12:45:36.123").getTime());
+
+        FileAlertItem.configure(() -> new Date(currentTime.get()));
+        AlertInfo.configure(() -> new Date(currentTime.get()));
+
+        FileAlertItem alert = (FileAlertItem) storage.addItem("/", "23:58/3 Go home, stop coding!");
+
+        assertTrue(alert.isActive());
+        assertFalse(alert.isPeriodActive());
+        assertNotNull(alert.nextTime());
+        assertEquals("2016-05-12 23:58:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-13 00:01:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model = getAlertModelFromFile(alert.getFile());
+        assertEquals("2016-05-13 00:01:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        currentTime.set(DF.parse("2016-05-13 00:00:00.499").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2016-05-13 00:01:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-13 00:04:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        currentTime.set(DF.parse("2016-05-13 00:03:34.499").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2016-05-13 00:04:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-13 00:07:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        model = getAlertModelFromFile(alert.getFile());
+        assertEquals("2016-05-13 00:07:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        alert.cancelActivePeriod();
+
+        assertFalse(alert.isActive());
+        assertFalse(alert.isPeriodActive());
+        assertEquals("2016-05-12 23:58:00.000", DF.format(alert.nextTime()));
+        assertNull(alert.getLastActivePeriodTime());
+
+        model = getAlertModelFromFile(alert.getFile());
+        assertNull(model.getLastActivePeriodTimeDate());
     }
 
     private UserStorage getOrCreateStorage(User user) {

@@ -1,16 +1,13 @@
 package io.arusland.storage.file;
 
-import com.google.gson.Gson;
 import io.arusland.storage.TimeZoneClient;
 import io.arusland.storage.util.DateValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +31,6 @@ public class AlertInfo {
     private static final Pattern WEEK_DAY_PATTERN2 = Pattern.compile("^([1-7])-([1-7])$");
     private static final ChronoUnit[] PERIOD_TYPES = new ChronoUnit[]{ChronoUnit.HOURS, ChronoUnit.MINUTES,
             ChronoUnit.DAYS, ChronoUnit.MONTHS, ChronoUnit.YEARS};
-    private static final String META_DATA_TOKEN = "<<<<_META_INFO_>>>>";
     public final static int DAY_MONDAY = 0x01;
     public final static int DAY_TUESDAY = 0x02;
     public final static int DAY_WEDNESDAY = 0x04;
@@ -55,17 +51,16 @@ public class AlertInfo {
     public final ChronoUnit periodType;
     public final boolean valid;
     public final String validMessage;
-    public final MetaInfo meta;
 
     private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year,
                       int weekDays, Integer period, ChronoUnit periodType, String message,
-                      String content, MetaInfo meta) {
-        this(hour, minute, day, month, year, weekDays, period, periodType, message, content, meta, true, "");
+                      String content) {
+        this(hour, minute, day, month, year, weekDays, period, periodType, message, content, true, "");
     }
 
     private AlertInfo(int hour, int minute, Integer day, Integer month, Integer year,
                       int weekDays, Integer period, ChronoUnit periodType, String message,
-                      String content, MetaInfo meta, boolean valid, String validMessage) {
+                      String content, boolean valid, String validMessage) {
         this.hour = hour;
         this.minute = minute;
         this.year = year;
@@ -76,38 +71,37 @@ public class AlertInfo {
         this.content = content;
         this.period = period;
         this.periodType = periodType;
-        this.meta = meta;
         this.valid = valid;
         this.validMessage = validMessage;
     }
 
-    public AlertInfo(int hour, int minute, String message, String content, MetaInfo meta) {
-        this(hour, minute, null, null, null, 0, null, null, message, content, meta);
+    public AlertInfo(int hour, int minute, String message, String content) {
+        this(hour, minute, null, null, null, 0, null, null, message, content);
     }
 
-    public AlertInfo(int hour, int minute, int weekDays, String message, String content, MetaInfo meta) {
-        this(hour, minute, null, null, null, weekDays, null, null, message, content, meta);
+    public AlertInfo(int hour, int minute, int weekDays, String message, String content) {
+        this(hour, minute, null, null, null, weekDays, null, null, message, content);
     }
 
     public AlertInfo(int hour, int minute, int weekDays, Integer period, ChronoUnit periodType,
-                     String message, String content, MetaInfo meta) {
-        this(hour, minute, null, null, null, weekDays, period, periodType, message, content, meta);
+                     String message, String content) {
+        this(hour, minute, null, null, null, weekDays, period, periodType, message, content);
     }
 
     public AlertInfo(int hour, int minute, Integer day, Integer month,
-                     Integer year, String message, String content, MetaInfo meta) {
-        this(hour, minute, day, month, year, 0, null, null, message, content, meta);
+                     Integer year, String message, String content) {
+        this(hour, minute, day, month, year, 0, null, null, message, content);
     }
 
     public AlertInfo(int hour, int minute, Integer day, Integer month,
                      Integer year, Integer period, ChronoUnit periodType, String message,
-                     String content, MetaInfo meta) {
-        this(hour, minute, day, month, year, 0, period, periodType, message, content, meta);
+                     String content) {
+        this(hour, minute, day, month, year, 0, period, periodType, message, content);
     }
 
     public AlertInfo(int hour, int minute, Integer period, ChronoUnit periodType, String message,
-                     String content, MetaInfo meta) {
-        this(hour, minute, null, null, null, 0, period, periodType, message, content, meta);
+                     String content) {
+        this(hour, minute, null, null, null, 0, period, periodType, message, content);
     }
 
     /**
@@ -115,7 +109,7 @@ public class AlertInfo {
      */
     private AlertInfo setInvalidInfo(String validMessage) {
         return new AlertInfo(hour, minute, day, month, year, weekDays, period, periodType,
-                message, content, meta, false, validMessage);
+                message, content, false, validMessage);
     }
 
     /**
@@ -169,6 +163,7 @@ public class AlertInfo {
         if (info.weekDays == 0 &&
                 info.year == null && info.month == null && info.day == null) {
             Calendar cal = Calendar.getInstance();
+            cal.setTime(currentDateSupplier.get());
             cal.setTime(timeZoneClient.toClient(cal.getTime()));
             long currentMillis = cal.getTimeInMillis();
             cal.set(Calendar.HOUR_OF_DAY, info.hour);
@@ -203,27 +198,18 @@ public class AlertInfo {
             }
 
             return new AlertInfo(info.hour, info.minute, day,
-                    month, year, info.period, info.periodType, info.message, content, info.meta);
+                    month, year, info.period, info.periodType, info.message, content);
         }
 
         return info;
     }
 
     private static AlertInfo parseInternal(String input) {
-        int idx = input.indexOf(META_DATA_TOKEN);
-        MetaInfo meta = null;
-
-        if (idx >= 0) {
-            String metaData = input.substring(idx + META_DATA_TOKEN.length());
-            meta = new Gson().fromJson(metaData, MetaInfo.class);
-            input = input.substring(0, idx);
-        }
-
         Matcher mc = ALERT_FULL_PATTERN.matcher(input);
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), Integer.parseInt(mc.group(3)),
-                    Integer.parseInt(mc.group(4)), Integer.parseInt(mc.group(5)), mc.group(6), input, meta);
+                    Integer.parseInt(mc.group(4)), Integer.parseInt(mc.group(5)), mc.group(6), input);
         }
 
         mc = ALERT_FULL_PERIOD_PATTERN.matcher(input);
@@ -238,14 +224,14 @@ public class AlertInfo {
             PeriodInfo pinfo = getPeriodInfo(periods);
 
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(3)), Integer.parseInt(mc.group(5)),
-                    Integer.parseInt(mc.group(7)), Integer.parseInt(mc.group(9)), pinfo.period, pinfo.type, mc.group(11), input, meta);
+                    Integer.parseInt(mc.group(7)), Integer.parseInt(mc.group(9)), pinfo.period, pinfo.type, mc.group(11), input);
         }
 
         mc = ALERT_FULL_PATTERN2.matcher(input);
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), Integer.parseInt(mc.group(3)),
-                    Integer.parseInt(mc.group(4)), (Integer) null, mc.group(5), input, meta);
+                    Integer.parseInt(mc.group(4)), (Integer) null, mc.group(5), input);
         }
 
         mc = ALERT_FULL_PERIOD_PATTERN2.matcher(input);
@@ -260,14 +246,14 @@ public class AlertInfo {
             PeriodInfo pinfo = getPeriodInfo(periods);
 
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(3)), Integer.parseInt(mc.group(5)),
-                    Integer.parseInt(mc.group(7)), (Integer) null, pinfo.period, pinfo.type, mc.group(9), input, meta);
+                    Integer.parseInt(mc.group(7)), (Integer) null, pinfo.period, pinfo.type, mc.group(9), input);
         }
 
         mc = ALERT_FULL_PATTERN3.matcher(input);
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)), Integer.parseInt(mc.group(3)),
-                    (Integer) null, (Integer) null, mc.group(4), input, meta);
+                    (Integer) null, (Integer) null, mc.group(4), input);
         }
 
         mc = ALERT_FULL_PERIOD_PATTERN3.matcher(input);
@@ -282,7 +268,7 @@ public class AlertInfo {
             PeriodInfo pinfo = getPeriodInfo(periods);
 
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(3)), Integer.parseInt(mc.group(5)),
-                    (Integer) null, (Integer) null, pinfo.period, pinfo.type, mc.group(7), input, meta);
+                    (Integer) null, (Integer) null, pinfo.period, pinfo.type, mc.group(7), input);
         }
 
         mc = ALERT_WEEK_PATTERN.matcher(input);
@@ -292,7 +278,7 @@ public class AlertInfo {
 
             if (flags > 0) {
                 return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)),
-                        flags, mc.group(4), input, meta);
+                        flags, mc.group(4), input);
             }
         }
 
@@ -310,7 +296,7 @@ public class AlertInfo {
 
                 PeriodInfo pinfo = getPeriodInfo(periods);
                 return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(3)),
-                        flags, pinfo.period, pinfo.type, mc.group(6), input, meta);
+                        flags, pinfo.period, pinfo.type, mc.group(6), input);
             }
         }
 
@@ -318,7 +304,7 @@ public class AlertInfo {
 
         if (mc.find()) {
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(2)),
-                    mc.group(3), input, meta);
+                    mc.group(3), input);
         }
 
         mc = ALERT_SHORT_PERIOD_PATTERN.matcher(input);
@@ -332,7 +318,7 @@ public class AlertInfo {
 
             PeriodInfo pinfo = getPeriodInfo(periods);
             return new AlertInfo(Integer.parseInt(mc.group(1)), Integer.parseInt(mc.group(3)),
-                    pinfo.period, pinfo.type, mc.group(5), input, meta);
+                    pinfo.period, pinfo.type, mc.group(5), input);
         }
 
         return null;
@@ -390,27 +376,11 @@ public class AlertInfo {
         return 0;
     }
 
-    @Override
-    public String toString() {
-        return "AlertInfo{" +
-                "hour=" + hour +
-                ", minute=" + minute +
-                ", year=" + year +
-                ", month=" + month +
-                ", day=" + day +
-                ", weekDays=" + weekDays +
-                ", message='" + message + '\'' +
-                ", content='" + content + '\'' +
-                ", period=" + period +
-                ", periodType=" + periodType +
-                ", valid=" + valid +
-                '}';
-    }
 
     public static AlertInfo invalidAlertInfo(String validMessage) {
         Validate.notBlank(validMessage, "validMessage");
 
-        return new AlertInfo(0, 0, null, null, null, 0, null, null, null, null, (MetaInfo)null, false, validMessage);
+        return new AlertInfo(0, 0, null, null, null, 0, null, null, null, null, false, validMessage);
     }
 
     private static class ValidInfo {
@@ -440,7 +410,26 @@ public class AlertInfo {
         }
     }
 
-    public static class MetaInfo {
-        long lastActivePeriodTime;
+    @Override
+    public String toString() {
+        return "AlertInfo{" +
+                "hour=" + hour +
+                ", minute=" + minute +
+                ", year=" + year +
+                ", month=" + month +
+                ", day=" + day +
+                ", weekDays=" + weekDays +
+                ", message='" + message + '\'' +
+                ", content='" + content + '\'' +
+                ", period=" + period +
+                ", periodType=" + periodType +
+                ", valid=" + valid +
+                '}';
     }
+
+    protected static void configure(Supplier<Date> currentDateSupplier) {
+        AlertInfo.currentDateSupplier = currentDateSupplier;
+    }
+
+    private static Supplier<Date> currentDateSupplier = () -> new Date();
 }

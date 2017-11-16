@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
 
@@ -26,12 +27,15 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private Date nextDate;
     private String title;
     private Date lastActivePeriodTime;
+    private boolean isPeriodActive;
 
     public FileAlertItem(User user, File file, ItemPath path, AlertInfo info,
-                         ItemFactory itemFactory, TimeZoneClient timeZoneClient,
+                         Date lastActivePeriodTime, ItemFactory itemFactory,
+                         TimeZoneClient timeZoneClient,
                          Consumer<FileAlertItem> onLastActivePeriodUpdate) {
         super(user, ItemType.ALERTS, file, path, itemFactory);
         this.info = Validate.notNull(info, "info");
+        this.lastActivePeriodTime = lastActivePeriodTime;
         this.timeZoneClient = Validate.notNull(timeZoneClient, "timeZoneClient");
         this.onLastActivePeriodUpdate = Validate.notNull(onLastActivePeriodUpdate, "onLastActivePeriodUpdate");
     }
@@ -69,18 +73,20 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     public boolean isActive() {
         calcNextState();
 
-        return nextDate != null && System.currentTimeMillis() < nextDate.getTime();
+        return nextDate != null && currentDateSupplier.get().before(nextDate);
     }
 
     @Override
     public boolean isPeriodActive() {
-        return isActive() && lastActivePeriodTime != null && nextDate.after(lastActivePeriodTime);
+        return isActive() && isPeriodActive;
     }
 
     @Override
     public void cancelActivePeriod() {
         lastActivePeriodTime = null;
+        nextDate = null;
         calcNextState();
+        onLastActivePeriodUpdate.accept(this);
     }
 
     @Override
@@ -107,7 +113,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
 
     private void calcNextState() {
         if (nextDate != null) {
-            if (nextDate.getTime() > System.currentTimeMillis()) {
+            if (nextDate.after(currentDateSupplier.get())) {
                 return;
             }
         }
@@ -208,32 +214,36 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         this.nextDate = timeZoneClient.fromClient(clientTime.getTime());
 
         if (info.period != null) {
-            long now = System.currentTimeMillis();
+            long now = currentDateSupplier.get().getTime();
+            boolean isActive = nextDate.getTime() > now;
             long timeInMs = calcPeriodInMs(info.period, info.periodType);
 
-            // when launch first time
-            if (lastActivePeriodTime == null) {
-                lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
-            } else {
-                if (lastActivePeriodTime.getTime() <= now) {
-                    long lastPeriod = lastActivePeriodTime.getTime();
-
-                    do {
-                        lastPeriod += timeInMs;
-                    } while (lastPeriod <= now);
-
-                    lastActivePeriodTime = new Date(lastPeriod);
-                }
-
-                if (lastActivePeriodTime.before(nextDate)) {
-                    nextDate = lastActivePeriodTime;
-                } else {
-                    // recalc new active period time
+            if (isActive) {
+                // when launch first time
+                if (lastActivePeriodTime == null) {
                     lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
-                }
-            }
+                } else {
+                    lastActivePeriodTime = recalcNextActivePeriodTime(lastActivePeriodTime, now, timeInMs);
 
-            onLastActivePeriodUpdate.accept(this);
+                    if (lastActivePeriodTime.before(nextDate)) {
+                        nextDate = lastActivePeriodTime;
+                        isPeriodActive = true;
+                    } else {
+                        // recalc new active period time
+                        lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
+                        isPeriodActive = false;
+                    }
+                }
+
+                onLastActivePeriodUpdate.accept(this);
+            } else if (lastActivePeriodTime != null) {
+                lastActivePeriodTime = recalcNextActivePeriodTime(lastActivePeriodTime, now, timeInMs);
+                nextDate = lastActivePeriodTime;
+                lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
+                isPeriodActive = true;
+
+                onLastActivePeriodUpdate.accept(this);
+            }
         }
 
         String newTitle = String.format("%02d:%02d %02d:%02d:%d",
@@ -252,8 +262,22 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         log.info(this);
     }
 
+    private static Date recalcNextActivePeriodTime(Date lastActivePeriodTime, long now, long timeInMs) {
+        if (lastActivePeriodTime.getTime() <= now) {
+            long lastPeriod = lastActivePeriodTime.getTime();
+
+            do {
+                lastPeriod += timeInMs;
+            } while (lastPeriod <= now);
+
+            lastActivePeriodTime = new Date(lastPeriod);
+        }
+
+        return lastActivePeriodTime;
+    }
+
     private long calcPeriodInMs(Integer period, ChronoUnit periodType) {
-        return Duration.of(period, periodType).get(ChronoUnit.MILLIS);
+        return Duration.of(period, periodType).get(ChronoUnit.SECONDS) * 1000;
     }
 
     private static List<Integer> getAlertDays(int flags) {
@@ -283,4 +307,10 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                 ", title='" + title + '\'' +
                 '}';
     }
+
+    protected static void configure(Supplier<Date> currentDateSupplier) {
+        FileAlertItem.currentDateSupplier = currentDateSupplier;
+    }
+
+    private static Supplier<Date> currentDateSupplier = () -> new Date();
 }

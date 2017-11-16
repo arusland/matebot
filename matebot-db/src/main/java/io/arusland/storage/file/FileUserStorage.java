@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -301,11 +302,14 @@ public class FileUserStorage implements UserStorage, ItemFactory {
      */
     private Optional<FileAlertItem> createAlertItem(File file, ItemPath itemPath) {
         try {
-            String content = FileUtils.readFileToString(file, "UTF-8");
-            AlertInfo info = AlertInfo.parse(content, getTimeZoneClient());
+            String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+            AlertModel model = AlertModel.parseFile(content);
+            AlertInfo info = AlertInfo.parse(model.getInput(), getTimeZoneClient());
 
             if (info != null && info.valid) {
-                return Optional.of(new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient(), this::onPeriodTimeUpdate));
+                return Optional.of(new FileAlertItem(user, file, itemPath, info,
+                        model.getLastActivePeriodTimeDate(), (ItemFactory) this,
+                        getTimeZoneClient(), this::onPeriodTimeUpdate));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -315,7 +319,15 @@ public class FileUserStorage implements UserStorage, ItemFactory {
     }
 
     private void onPeriodTimeUpdate(FileAlertItem fileAlertItem) {
-        // TODO: save new period time
+        AlertModel model = new AlertModel(fileAlertItem.getInfo().content, fileAlertItem.getLastActivePeriodTime());
+
+        log.info("Alert updated in file: " + fileAlertItem.getFile());
+
+        try {
+            FileUtils.writeStringToFile(fileAlertItem.getFile(), model.toFileString(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException("Saving alert failed: " + fileAlertItem.getFile(), e);
+        }
     }
 
     private FileAlertItem tryAddAlertItem(String path, AlertInfo info) {
@@ -328,15 +340,19 @@ public class FileUserStorage implements UserStorage, ItemFactory {
         if (parent != null) {
             String name = generateAlertFileName();
             File file = new File(parent.getFile(), name);
+            AlertModel model = new AlertModel(info.content, (Date) null);
+
+            log.info("Alert save into file: " + file);
 
             try {
-                FileUtils.writeStringToFile(file, info.content, "UTF-8");
+                FileUtils.writeStringToFile(file, model.toFileString(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
             ItemPath itemPath = ItemPath.parse(parent.getFullPath() + "/" + file.getName());
-            return new FileAlertItem(user, file, itemPath, info, this, getTimeZoneClient(), this::onPeriodTimeUpdate);
+            return new FileAlertItem(user, file, itemPath, info, (Date) null,
+                    (ItemFactory) this, getTimeZoneClient(), this::onPeriodTimeUpdate);
         }
 
         return null;
