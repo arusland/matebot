@@ -213,6 +213,13 @@ public class CommonCommand extends BaseBotCommand {
             sb.append("✅ Alert added!\n");
             sb.append("Notification time: ");
             sb.append(new SimpleDateFormat(DATETIME_FORMAT).format(getContext().toClient(user, nextTime)));
+
+            if (addedItem.isPeriodActive()) {
+                sb.append(" with period (");
+                sb.append(TimeUtils.friendlyPeriod(addedItem.getPeriod(), addedItem.getPeriodType()));
+                sb.append(")");
+            }
+
             sb.append("\n");
             sb.append("\uD83D\uDD14 Notification in ");
             sb.append(TimeUtils.friendlyTimespan(nextTime));
@@ -238,6 +245,8 @@ public class CommonCommand extends BaseBotCommand {
                 handleDownloadItem(user, chatId, storage, args);
             } else if ("rm".equals(command)) {
                 handleRemoveItem(cmd, user, chatId, update, storage, args);
+            } else if ("cp".equals(command)) {
+                handleCancelPeriod(cmd, user, chatId, update, storage, args);
             } else if ("mv".equals(command)) {
                 handleMoveItem(user, chatId, storage, args);
             } else if ("newdir".equals(command)) {
@@ -247,6 +256,21 @@ public class CommonCommand extends BaseBotCommand {
             } else {
                 log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
             }
+        }
+    }
+
+    private void handleCancelPeriod(ShortcutCommand cmd, User user, Long chatId, Update update,
+                                    UserStorage storage, List<String> args) {
+        Item item = storage.getItemByPath(args.get(0));
+
+        if (item != null) {
+            if (item instanceof AlertItem) {
+                handleCancelAlertPeriod(cmd, user, chatId, update, storage, (AlertItem) item);
+            } else {
+                sendMessage(chatId, "Alert not found!");
+            }
+        } else {
+            sendMessage(chatId, "Alert not found!");
         }
     }
 
@@ -427,6 +451,13 @@ public class CommonCommand extends BaseBotCommand {
         sb.append("\n");
         sb.append("Notification time: ");
         sb.append(new SimpleDateFormat(DATETIME_FORMAT).format(getContext().toClient(user, nextTime)));
+
+        if (alert.isPeriodActive()) {
+            sb.append(" with period (");
+            sb.append(TimeUtils.friendlyPeriod(alert.getPeriod(), alert.getPeriodType()));
+            sb.append(")");
+        }
+
         sb.append("\n");
         sb.append("Alert source: ");
         sb.append(alert.getSource());
@@ -440,6 +471,7 @@ public class CommonCommand extends BaseBotCommand {
         }
 
         String removeFile = "/remove";
+        String cancelPeriod = "/cancelPeriod";
         String cancelOperation = "/cancel";
 
         getContext().addShortcutCommand(user.getId(), removeFile, "rm", alert.getFullPath(), "0");
@@ -447,8 +479,16 @@ public class CommonCommand extends BaseBotCommand {
 
         sb.append("\n\n❌");
         sb.append(removeFile);
+
+        if (alert.isPeriodActive()) {
+            getContext().addShortcutCommand(user.getId(), cancelPeriod, "cp", alert.getFullPath(), "0");
+            sb.append(" ⏰");
+            sb.append(cancelPeriod);
+        }
+
         sb.append(" ✅");
         sb.append(cancelOperation);
+
         sb.append("\n");
 
         sendMessage(chatId, sb.toString());
@@ -483,6 +523,33 @@ public class CommonCommand extends BaseBotCommand {
                 sb.append(alert.getSource());
                 sb.append("'?\n❌");
                 sb.append(removeFile);
+                sb.append(" ✅");
+                sb.append(cancelOperation);
+                sb.append("\n");
+
+                sendMessage(chatId, sb.toString());
+            }
+        }
+    }
+
+    private void handleCancelAlertPeriod(ShortcutCommand cmd, User user, Long chatId,
+                                         Update update, UserStorage storage, AlertItem alert) {
+        if (!alert.isDirectory()) {
+            if (cmd.getArguments().size() >= 2 && cmd.getArguments().get(1).equals("1")) {
+                alert.cancelActivePeriod();
+                sendMessage(chatId, "Alert period was canceled");
+                getContext().clearShortcutCommands(user);
+                getContext().rerunAlerts();
+                getContext().listCurrentDir(update);
+            } else {
+                String cancelPeriod = "/cancelPeriod";
+                String cancelOperation = "/cancel";
+
+                getContext().addShortcutCommand(user.getId(), cancelPeriod, "cp", alert.getFullPath(), "1");
+                getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", alert.getParentPath());
+
+                StringBuilder sb = new StringBuilder("Are you sure to cancel alert period?\n❌");
+                sb.append(cancelPeriod);
                 sb.append(" ✅");
                 sb.append(cancelOperation);
                 sb.append("\n");

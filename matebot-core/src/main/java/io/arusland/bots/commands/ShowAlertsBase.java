@@ -63,6 +63,7 @@ public abstract class ShowAlertsBase extends BaseBotCommand {
     private void renderAlertItem(User user, StringBuilder sb, int index, AlertItem alert) {
         String changeDirShortcut = "/" + (index + 1);
         String removeFileShortcut = "/del" + (index + 1);
+        String cancelPeriodShortcut = "/cancelPeriod" + (index + 1);
         sb.append(changeDirShortcut);
         sb.append(" ");
 
@@ -92,6 +93,13 @@ public abstract class ShowAlertsBase extends BaseBotCommand {
         if (!alert.isDirectory()) {
             sb.append(" ");
             sb.append(removeFileShortcut);
+
+            if (alert.isPeriodActive()) {
+                sb.append(" ");
+                sb.append(cancelPeriodShortcut);
+
+                getContext().addShortcutCommand(user.getId(), cancelPeriodShortcut, "cp", alert.getFullPath(), "0");
+            }
         }
 
         sb.append("\n");

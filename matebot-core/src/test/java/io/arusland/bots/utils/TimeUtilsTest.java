@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -128,6 +129,22 @@ public class TimeUtilsTest {
 
         assertEquals("18 days 14 hours", ts);
         assertEquals("18 d. 14 h.", ss);
+    }
+
+    @Test
+    public void testFriendlyPeriod() throws ParseException {
+        assertEquals("1 hour", TimeUtils.friendlyPeriod(1, ChronoUnit.HOURS));
+        assertEquals("3 hours", TimeUtils.friendlyPeriod(3, ChronoUnit.HOURS));
+        assertEquals("1 minute", TimeUtils.friendlyPeriod(1, ChronoUnit.MINUTES));
+        assertEquals("5 minutes", TimeUtils.friendlyPeriod(5, ChronoUnit.MINUTES));
+        assertEquals("1 second", TimeUtils.friendlyPeriod(1, ChronoUnit.SECONDS));
+        assertEquals("12 seconds", TimeUtils.friendlyPeriod(12, ChronoUnit.SECONDS));
+        assertEquals("1 day", TimeUtils.friendlyPeriod(1, ChronoUnit.DAYS));
+        assertEquals("5 days", TimeUtils.friendlyPeriod(5, ChronoUnit.DAYS));
+        assertEquals("1 month", TimeUtils.friendlyPeriod(1, ChronoUnit.MONTHS));
+        assertEquals("2 months", TimeUtils.friendlyPeriod(2, ChronoUnit.MONTHS));
+        assertEquals("1 year", TimeUtils.friendlyPeriod(1, ChronoUnit.YEARS));
+        assertEquals("7 years", TimeUtils.friendlyPeriod(7, ChronoUnit.YEARS));
     }
 
     private String friendlyTimespan(String s) throws ParseException {

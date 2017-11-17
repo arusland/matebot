@@ -1,5 +1,6 @@
 package io.arusland.bots.utils;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -133,6 +134,16 @@ public class TimeUtils {
         }
 
         return lastDayEnd;
+    }
+
+    public static String friendlyPeriod(int period, ChronoUnit periodType) {
+        String type = periodType.toString().toLowerCase();
+
+        if (period <= 1 && type.endsWith("s")) {
+            type = type.substring(0, type.length() - 1);
+        }
+
+        return period + " " + type;
     }
 
     private static String formatValue(int value, String type) {

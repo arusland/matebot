@@ -1,7 +1,7 @@
 package io.arusland.storage;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 
 /**
  * <code>AlertItem</code> - special type of {@link Item}.
@@ -49,7 +49,11 @@ public interface AlertItem extends Item<AlertItem> {
     boolean isPeriodActive();
 
     /**
-     * Cancel active period and it will be recalculated after next alert time.
+     * Cancel active period and recalc next period time.
      */
     void cancelActivePeriod();
+
+    Integer getPeriod();
+
+    ChronoUnit getPeriodType();
 }

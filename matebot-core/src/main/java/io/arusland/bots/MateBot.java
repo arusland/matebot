@@ -7,6 +7,7 @@ import io.arusland.bots.commands.*;
 import io.arusland.bots.utils.AlertsRunner;
 import io.arusland.bots.utils.ProcessUtil;
 import io.arusland.bots.utils.TimeManagement;
+import io.arusland.bots.utils.TimeUtils;
 import io.arusland.storage.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -302,10 +303,12 @@ public class MateBot extends BaseCommandBot implements BotContext {
         @Override
         public void accept(AlertItem alertItem, Long userId) {
             long chatId = configOutput.getUserChatId(userId);
+            int userIdMain = (int) ((long) userId);
 
             if (chatId > 0) {
                 StringBuilder sb = new StringBuilder();
                 String removeFile = "/remove";
+                String cancelPeriod = "/cancelPeriod";
 
                 if (StringUtils.isNoneBlank(alertItem.getMessage())) {
                     sb.append("ALERT: ");
@@ -314,12 +317,24 @@ public class MateBot extends BaseCommandBot implements BotContext {
                     sb.append("ALERT!!!");
                 }
 
+                if (alertItem.isPeriodActive()) {
+                    sb.append("\n\nAlert with period (");
+                    sb.append(TimeUtils.friendlyPeriod(alertItem.getPeriod(), alertItem.getPeriodType()));
+                    sb.append(")");
+                }
+
                 sb.append("\n\n❌");
                 sb.append(removeFile);
+
+                if (alertItem.isPeriodActive()) {
+                    sb.append(" ⏰");
+                    sb.append(cancelPeriod);
+
+                    addShortcutCommand(userIdMain, cancelPeriod, "cp", alertItem.getFullPath(), "0");
+                }
+
                 sb.append("\n\nRemind me in:\n");
                 sb.append("/1min  /5min  /10min  /30min  /1hour");
-
-                int userIdMain = (int) ((long) userId);
 
                 addShortcutCommand(userIdMain, removeFile, "rm", alertItem.getFullPath(), "0");
                 addShortcutCommand(userIdMain, "/1min", "remind", alertItem.getMessage(), "1min");

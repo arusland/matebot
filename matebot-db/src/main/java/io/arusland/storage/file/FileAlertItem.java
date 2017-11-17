@@ -7,6 +7,8 @@ import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -20,6 +22,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private final static Logger log = Logger.getLogger(FileAlertItem.class);
+    private static final DateFormat DF = new SimpleDateFormat("HH:mm dd.MM.yyyy");
     private static final int MESSAGE_TITLE_LENGTH = 40;
     private final AlertInfo info;
     private final TimeZoneClient timeZoneClient;
@@ -85,8 +88,19 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     public void cancelActivePeriod() {
         lastActivePeriodTime = null;
         nextDate = null;
+        isPeriodActive = false;
         calcNextState();
         onLastActivePeriodUpdate.accept(this);
+    }
+
+    @Override
+    public Integer getPeriod() {
+        return info.period;
+    }
+
+    @Override
+    public ChronoUnit getPeriodType() {
+        return info.periodType;
     }
 
     @Override
@@ -114,11 +128,13 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private void calcNextState() {
         if (nextDate != null) {
             if (nextDate.after(currentDateSupplier.get())) {
+                log.info(String.format("Got cached nextDate: %s", formatDate(timeZoneClient.toClient(nextDate))));
                 return;
             }
         }
 
         Calendar alertClientTime = Calendar.getInstance();
+        alertClientTime.setTime(currentDateSupplier.get());
         alertClientTime.setTime(timeZoneClient.toClient(alertClientTime.getTime()));
         long nowClientMillis = alertClientTime.getTimeInMillis();
         alertClientTime.set(Calendar.SECOND, 0);
@@ -133,6 +149,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                 int dayOfWeek = getDayOfWeek(alertClientTime);
 
                 if (alertDays.contains(dayOfWeek) && alertClientTime.getTimeInMillis() > nowClientMillis) {
+                    log.info(String.format("[DayOfWeek] nextDate: %s", formatDate(alertClientTime.getTime())));
                     refreshState(alertClientTime);
                     return;
                 }
@@ -148,6 +165,8 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                     alertClientTime.set(Calendar.YEAR, info.year);
                     alertClientTime.set(Calendar.MONTH, info.month - 1);
                     alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
+                    log.info(String.format("[day month year] nextDate: %s",
+                            formatDate(alertClientTime.getTime())));
                     refreshState(alertClientTime);
                     return;
                 } else {
@@ -161,6 +180,8 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                             alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
 
                             if (alertClientTime.getTimeInMillis() > nowClientMillis) {
+                                log.info(String.format("[day month] nextDate: %s",
+                                        formatDate(alertClientTime.getTime())));
                                 refreshState(alertClientTime);
                                 return;
                             }
@@ -180,6 +201,9 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
                         alertClientTime.set(Calendar.DAY_OF_MONTH, info.day);
 
                         if (alertClientTime.getTimeInMillis() > nowClientMillis) {
+                            log.info(String.format("[day] nextDate: %s",
+                                    formatDate(alertClientTime.getTime())));
+
                             refreshState(alertClientTime);
                             return;
                         }
@@ -213,38 +237,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private void refreshState(Calendar clientTime) {
         this.nextDate = timeZoneClient.fromClient(clientTime.getTime());
 
-        if (info.period != null) {
-            long now = currentDateSupplier.get().getTime();
-            boolean isActive = nextDate.getTime() > now;
-            long timeInMs = calcPeriodInMs(info.period, info.periodType);
-
-            if (isActive) {
-                // when launch first time
-                if (lastActivePeriodTime == null) {
-                    lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
-                } else {
-                    lastActivePeriodTime = recalcNextActivePeriodTime(lastActivePeriodTime, now, timeInMs);
-
-                    if (lastActivePeriodTime.before(nextDate)) {
-                        nextDate = lastActivePeriodTime;
-                        isPeriodActive = true;
-                    } else {
-                        // recalc new active period time
-                        lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
-                        isPeriodActive = false;
-                    }
-                }
-
-                onLastActivePeriodUpdate.accept(this);
-            } else if (lastActivePeriodTime != null) {
-                lastActivePeriodTime = recalcNextActivePeriodTime(lastActivePeriodTime, now, timeInMs);
-                nextDate = lastActivePeriodTime;
-                lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
-                isPeriodActive = true;
-
-                onLastActivePeriodUpdate.accept(this);
-            }
-        }
+        usePeriodIfSet();
 
         String newTitle = String.format("%02d:%02d %02d:%02d:%d",
                 info.hour, info.minute,
@@ -262,18 +255,76 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         log.info(this);
     }
 
-    private static Date recalcNextActivePeriodTime(Date lastActivePeriodTime, long now, long timeInMs) {
-        if (lastActivePeriodTime.getTime() <= now) {
-            long lastPeriod = lastActivePeriodTime.getTime();
+    private void usePeriodIfSet() {
+        if (info.period != null) {
+            long now = currentDateSupplier.get().getTime();
+            boolean isActive = nextDate.getTime() > now;
+            long timeInMs = calcPeriodInMs(info.period, info.periodType);
+
+            if (isActive) {
+                // when launch first time
+                if (lastActivePeriodTime == null) {
+                    lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
+
+                    if (log.isInfoEnabled()) {
+                        log.info(String.format("[period] first init lastActivePeriodTime: %s",
+                                timeZoneClient.toClient(lastActivePeriodTime)));
+                    }
+                } else {
+                    lastActivePeriodTime = recalcNextActivePeriodTime(lastActivePeriodTime, now, timeInMs);
+
+                    if (lastActivePeriodTime.before(nextDate)) {
+                        nextDate = lastActivePeriodTime;
+                        isPeriodActive = true;
+
+                        if (log.isInfoEnabled()) {
+                            log.info(String.format("[period] period active, lastActivePeriodTime/nextDate: %s",
+                                    formatDate(timeZoneClient.toClient(lastActivePeriodTime))));
+                        }
+                    } else {
+                        // recalc new active period time
+                        lastActivePeriodTime = new Date(nextDate.getTime() + timeInMs);
+                        isPeriodActive = false;
+
+                        if (log.isInfoEnabled()) {
+                            log.info(String.format("[period] period not active, lastActivePeriodTime: %s, nextDate: %s",
+                                    formatDate(timeZoneClient.toClient(lastActivePeriodTime)),
+                                    formatDate(timeZoneClient.toClient(nextDate))));
+                        }
+                    }
+                }
+
+                onLastActivePeriodUpdate.accept(this);
+            } else if (lastActivePeriodTime != null) {
+                lastActivePeriodTime = recalcNextActivePeriodTime(lastActivePeriodTime, now, timeInMs);
+                nextDate = lastActivePeriodTime;
+                isPeriodActive = true;
+
+                if (log.isInfoEnabled()) {
+                    log.info(String.format("[period] only period active, lastActivePeriodTime: %s",
+                            formatDate(timeZoneClient.toClient(lastActivePeriodTime))));
+                }
+
+                onLastActivePeriodUpdate.accept(this);
+            }
+        }
+    }
+
+    private Date recalcNextActivePeriodTime(Date nextActivePeriodTime, long now, long timeInMs) {
+        if (nextActivePeriodTime.getTime() <= now) {
+            long lastPeriod = nextActivePeriodTime.getTime();
 
             do {
                 lastPeriod += timeInMs;
             } while (lastPeriod <= now);
 
-            lastActivePeriodTime = new Date(lastPeriod);
+            nextActivePeriodTime = new Date(lastPeriod);
         }
 
-        return lastActivePeriodTime;
+        log.info(String.format("[period] recalc next lastActivePeriodTime: %s",
+                formatDate(timeZoneClient.toClient(nextActivePeriodTime))));
+
+        return nextActivePeriodTime;
     }
 
     private long calcPeriodInMs(Integer period, ChronoUnit periodType) {
@@ -298,6 +349,12 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
     private static int getDayOfWeek(Calendar cal) {
         int day = cal.get(Calendar.DAY_OF_WEEK);
         return day == Calendar.SUNDAY ? 7 : day - 1;
+    }
+
+    private static String formatDate(Date dt) {
+        synchronized (DF) {
+            return DF.format(dt);
+        }
     }
 
     @Override

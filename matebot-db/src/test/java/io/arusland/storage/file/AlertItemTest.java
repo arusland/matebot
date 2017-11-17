@@ -162,7 +162,7 @@ public class AlertItemTest {
     }
 
     @Test
-    public void testLastActivePeriodTimeWhenTimeChanges() throws ParseException, IOException {
+    public void testLastActivePeriodTimeWithShortFormat() throws ParseException, IOException {
         User user = new User(1123581321L, "Foo");
         UserStorage storage = getOrCreateStorage(user);
         AtomicLong currentTime = new AtomicLong();
@@ -187,17 +187,17 @@ public class AlertItemTest {
         assertTrue(alert.isActive());
         assertTrue(alert.isPeriodActive());
         assertEquals("2016-05-13 00:01:00.000", DF.format(alert.nextTime()));
-        assertEquals("2016-05-13 00:04:00.000", DF.format(alert.getLastActivePeriodTime()));
+        assertEquals("2016-05-13 00:01:00.000", DF.format(alert.getLastActivePeriodTime()));
 
         currentTime.set(DF.parse("2016-05-13 00:03:34.499").getTime());
 
         assertTrue(alert.isActive());
         assertTrue(alert.isPeriodActive());
         assertEquals("2016-05-13 00:04:00.000", DF.format(alert.nextTime()));
-        assertEquals("2016-05-13 00:07:00.000", DF.format(alert.getLastActivePeriodTime()));
+        assertEquals("2016-05-13 00:04:00.000", DF.format(alert.getLastActivePeriodTime()));
 
         model = getAlertModelFromFile(alert.getFile());
-        assertEquals("2016-05-13 00:07:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+        assertEquals("2016-05-13 00:04:00.000", DF.format(model.getLastActivePeriodTimeDate()));
 
         alert.cancelActivePeriod();
 
@@ -208,6 +208,72 @@ public class AlertItemTest {
 
         model = getAlertModelFromFile(alert.getFile());
         assertNull(model.getLastActivePeriodTimeDate());
+    }
+
+    @Test
+    public void testLastActivePeriodTimeWithWeekDays() throws ParseException, IOException {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        AtomicLong currentTime = new AtomicLong();
+        currentTime.set(DF.parse("2016-05-14 12:45:36.123").getTime());
+
+        FileAlertItem.configure(() -> new Date(currentTime.get()));
+        AlertInfo.configure(() -> new Date(currentTime.get()));
+
+        FileAlertItem alert = (FileAlertItem) storage.addItem("/", "23:58/4 2-5 Blockchain!!");
+
+        assertTrue(alert.isActive());
+        assertFalse(alert.isPeriodActive());
+        assertNotNull(alert.nextTime());
+        assertEquals("2016-05-17 23:58:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-18 00:02:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model = getAlertModelFromFile(alert.getFile());
+        assertEquals("2016-05-18 00:02:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        currentTime.set(DF.parse("2016-05-18 00:00:44.499").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2016-05-18 00:02:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-18 00:02:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        currentTime.set(DF.parse("2016-05-18 00:04:34.499").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2016-05-18 00:06:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-18 00:06:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        model = getAlertModelFromFile(alert.getFile());
+        assertEquals("2016-05-18 00:06:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        currentTime.set(DF.parse("2016-05-19 23:57:34.499").getTime());
+
+        assertTrue(alert.isActive());
+        assertFalse(alert.isPeriodActive());
+        assertEquals("2016-05-19 23:58:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-20 00:02:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        model = getAlertModelFromFile(alert.getFile());
+        assertEquals("2016-05-20 00:02:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        currentTime.set(DF.parse("2016-05-20 00:01:34.499").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2016-05-20 00:02:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-20 00:02:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        alert.cancelActivePeriod();
+
+        assertTrue(alert.isActive());
+        assertFalse(alert.isPeriodActive());
+        assertEquals("2016-05-20 23:58:00.000", DF.format(alert.nextTime()));
+        assertEquals("2016-05-21 00:02:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        model = getAlertModelFromFile(alert.getFile());
+        assertEquals("2016-05-21 00:02:00.000", DF.format(model.getLastActivePeriodTimeDate()));
     }
 
     private UserStorage getOrCreateStorage(User user) {
