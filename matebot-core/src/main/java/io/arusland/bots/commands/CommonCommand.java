@@ -40,6 +40,7 @@ public class CommonCommand extends BaseBotCommand {
         put("10min", 10);
         put("30min", 30);
         put("1hour", 60);
+        put("24hour", 60*24);
     }};
 
     public CommonCommand(BotContext context) {

@@ -334,7 +334,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
                 }
 
                 sb.append("\n\nRemind me in:\n");
-                sb.append("/1min  /5min  /10min  /30min  /1hour");
+                sb.append("/1min  /5min  /10min  /30min  /1hour  /1day");
 
                 addShortcutCommand(userIdMain, removeFile, "rm", alertItem.getFullPath(), "0");
                 addShortcutCommand(userIdMain, "/1min", "remind", alertItem.getMessage(), "1min");
@@ -342,6 +342,7 @@ public class MateBot extends BaseCommandBot implements BotContext {
                 addShortcutCommand(userIdMain, "/10min", "remind", alertItem.getMessage(), "10min");
                 addShortcutCommand(userIdMain, "/30min", "remind", alertItem.getMessage(), "30min");
                 addShortcutCommand(userIdMain, "/1hour", "remind", alertItem.getMessage(), "1hour");
+                addShortcutCommand(userIdMain, "/1day", "remind", alertItem.getMessage(), "24hour");
 
                 sendMessage(chatId, sb.toString());
             }
