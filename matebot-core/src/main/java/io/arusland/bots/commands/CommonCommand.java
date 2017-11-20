@@ -40,7 +40,7 @@ public class CommonCommand extends BaseBotCommand {
         put("10min", 10);
         put("30min", 30);
         put("1hour", 60);
-        put("24hour", 60*24);
+        put("24hour", 60 * 24);
     }};
 
     public CommonCommand(BotContext context) {
@@ -289,8 +289,9 @@ public class CommonCommand extends BaseBotCommand {
                 cal.add(Calendar.MINUTE, 1);
             }
 
-            String cmdText = String.format("%d:%d %s",
-                    cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), text);
+            String cmdText = String.format("%d:%d %d:%d:%d %s",
+                    cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE),
+                    cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.YEAR), text);
             Item alertItem = storage.addItem("/", cmdText);
 
             if (alertItem instanceof AlertItem) {
