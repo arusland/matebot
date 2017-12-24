@@ -10,8 +10,8 @@
     <version>0.1</version>
 
     <modules>
-        <module>matebot-core</module>
         <module>matebot-db</module>
+        <module>matebot-core</module>
         <module>matebot-web</module>
         <module>matebot-ctl</module>
     </modules>
