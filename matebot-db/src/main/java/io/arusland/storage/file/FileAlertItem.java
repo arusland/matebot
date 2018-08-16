@@ -259,7 +259,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         if (info.period != null) {
             long now = currentDateSupplier.get().getTime();
             boolean isActive = nextDate.getTime() > now;
-            long timeInMs = calcPeriodInMs(info.period, info.periodType);
+            long timeInMs = calcPeriodInMs(info.period, info.periodType, nextDate);
 
             if (isActive) {
                 // when launch first time
@@ -327,8 +327,21 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         return nextActivePeriodTime;
     }
 
-    private long calcPeriodInMs(Integer period, ChronoUnit periodType) {
-        return Duration.of(period, periodType).get(ChronoUnit.SECONDS) * 1000;
+    private long calcPeriodInMs(Integer period, ChronoUnit periodType, Date nextDate) {
+        if (periodType == ChronoUnit.MONTHS) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(nextDate);
+            cal.add(Calendar.MONTH, period);
+
+            return cal.getTimeInMillis() - nextDate.getTime();
+        } else if (periodType == ChronoUnit.YEARS) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(nextDate);
+            cal.add(Calendar.YEAR, period);
+
+            return cal.getTimeInMillis() - nextDate.getTime();
+        } else
+            return Duration.of(period, periodType).get(ChronoUnit.SECONDS) * 1000;
     }
 
     private static List<Integer> getAlertDays(int flags) {

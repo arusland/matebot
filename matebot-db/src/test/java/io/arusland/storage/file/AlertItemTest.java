@@ -156,6 +156,126 @@ public class AlertItemTest {
         assertEquals("2016-05-13 00:00:00.000", DF.format(model.getLastActivePeriodTimeDate()));
     }
 
+    /**
+     * https://github.com/arusland/matebot/issues/12
+     */
+    @Test
+    public void testAddingAlertItemWithDayPeriod_Issue12() throws ParseException, IOException {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        AtomicLong currentTime = new AtomicLong();
+        currentTime.set(DF.parse("2018-08-16 18:45:36.123").getTime());
+
+        FileAlertItem.configure(() -> new Date(currentTime.get()));
+        AlertInfo.configure(() -> new Date(currentTime.get()));
+
+        FileAlertItem alert = (FileAlertItem) storage.addItem("/", "23:00 16/1:08:2018 please, fix this bug!");
+
+        assertTrue(alert.isActive());
+        assertNotNull(alert.nextTime());
+        assertFalse(alert.isPeriodActive());
+        assertEquals("2018-08-16 23:00:00.000", DF.format(alert.nextTime()));
+        assertEquals("2018-08-17 23:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:00 16/1:08:2018 please, fix this bug!", model.getInput());
+        assertEquals("2018-08-17 23:00:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        //----------------------------
+        currentTime.set(DF.parse("2018-08-17 23:01:36.123").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2018-08-18 23:00:00.000", DF.format(alert.nextTime()));
+        assertEquals("2018-08-18 23:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model2 = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:00 16/1:08:2018 please, fix this bug!", model2.getInput());
+        assertEquals("2018-08-18 23:00:00.000", DF.format(model2.getLastActivePeriodTimeDate()));
+    }
+
+    /**
+     * https://github.com/arusland/matebot/issues/12
+     */
+    @Test
+    public void testAddingAlertItemWithMonthPeriod_Issue12() throws ParseException, IOException {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        AtomicLong currentTime = new AtomicLong();
+        currentTime.set(DF.parse("2018-08-16 18:45:36.123").getTime());
+
+        FileAlertItem.configure(() -> new Date(currentTime.get()));
+        AlertInfo.configure(() -> new Date(currentTime.get()));
+
+        FileAlertItem alert = (FileAlertItem) storage.addItem("/", "23:00 16:08/1:2018 please, fix this bug!");
+
+        assertTrue(alert.isActive());
+        assertNotNull(alert.nextTime());
+        assertFalse(alert.isPeriodActive());
+        assertEquals("2018-08-16 23:00:00.000", DF.format(alert.nextTime()));
+        assertEquals("2018-09-16 23:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:00 16:08/1:2018 please, fix this bug!", model.getInput());
+        assertEquals("2018-09-16 23:00:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        //----------------------------
+        currentTime.set(DF.parse("2018-09-16 23:01:36.123").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2018-10-17 23:00:00.000", DF.format(alert.nextTime()));
+        assertEquals("2018-10-17 23:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model2 = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:00 16:08/1:2018 please, fix this bug!", model2.getInput());
+        assertEquals("2018-10-17 23:00:00.000", DF.format(model2.getLastActivePeriodTimeDate()));
+    }
+
+    /**
+     * https://github.com/arusland/matebot/issues/12
+     */
+    @Test
+    public void testAddingAlertItemWithYearPeriod_Issue12() throws ParseException, IOException {
+        User user = new User(1123581321L, "Foo");
+        UserStorage storage = getOrCreateStorage(user);
+        AtomicLong currentTime = new AtomicLong();
+        currentTime.set(DF.parse("2018-08-16 18:45:36.123").getTime());
+
+        FileAlertItem.configure(() -> new Date(currentTime.get()));
+        AlertInfo.configure(() -> new Date(currentTime.get()));
+
+        FileAlertItem alert = (FileAlertItem) storage.addItem("/", "23:00 16:08:2018/1 please, fix this bug!");
+
+        assertTrue(alert.isActive());
+        assertNotNull(alert.nextTime());
+        assertFalse(alert.isPeriodActive());
+        assertEquals("2018-08-16 23:00:00.000", DF.format(alert.nextTime()));
+        assertEquals("2019-08-16 23:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:00 16:08:2018/1 please, fix this bug!", model.getInput());
+        assertEquals("2019-08-16 23:00:00.000", DF.format(model.getLastActivePeriodTimeDate()));
+
+        //----------------------------
+        currentTime.set(DF.parse("2019-09-16 23:01:36.123").getTime());
+
+        assertTrue(alert.isActive());
+        assertTrue(alert.isPeriodActive());
+        assertEquals("2020-08-15 23:00:00.000", DF.format(alert.nextTime()));
+        assertEquals("2020-08-15 23:00:00.000", DF.format(alert.getLastActivePeriodTime()));
+
+        AlertModel model2 = getAlertModelFromFile(alert.getFile());
+
+        assertEquals("23:00 16:08:2018/1 please, fix this bug!", model2.getInput());
+        assertEquals("2020-08-15 23:00:00.000", DF.format(model2.getLastActivePeriodTimeDate()));
+    }
+
     private static AlertModel getAlertModelFromFile(File file) throws IOException {
         String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 

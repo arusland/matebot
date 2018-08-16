@@ -522,6 +522,23 @@ public class AlertInfoTest {
         assertEquals("7:43 05:10:2012/5 Malik birthday", info.content);
     }
 
+    @Test
+    public void testFullWithMessageWithMonthPeriod() {
+        AlertInfo info = parseInfo("23:00 17:08/1:2018 please, fix this bug!");
+
+        assertTrue(info.valid);
+        assertEquals(23, info.hour);
+        assertEquals(0, info.minute);
+        assertEquals(17, (int) info.day);
+        assertEquals(8, (int) info.month);
+        assertEquals(2018, (int)info.year);
+        assertEquals(0, info.weekDays);
+        assertEquals("please, fix this bug!", info.message);
+        assertEquals(1, (int) info.period);
+        assertEquals(ChronoUnit.MONTHS, info.periodType);
+        assertEquals("23:00 17:08/1:2018 please, fix this bug!", info.content);
+    }
+
     // invalid dates tests
 
     @Test
