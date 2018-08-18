@@ -4,6 +4,7 @@ import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BaseCommandBot;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.commands.*;
+import io.arusland.bots.proxy.ProxyAuth;
 import io.arusland.bots.utils.AlertsRunner;
 import io.arusland.bots.utils.ProcessUtil;
 import io.arusland.bots.utils.TimeManagement;
@@ -22,6 +23,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.BotSession;
 
 import java.io.File;
+import java.net.Authenticator;
 import java.util.*;
 import java.util.function.BiConsumer;
 
@@ -71,6 +73,23 @@ public class MateBot extends BaseCommandBot implements BotContext {
     }
 
     public static void main(String[] args) {
+          /*
+          -DsocksProxyHost=185.250.XXX.XXX -DsocksProxyPort=6000 -Djava.net.socks.username=user123 -Djava.net.socks.password=pwd123
+
+            System.setProperty("socksProxyHost", "188.166.xxx.xxx")
+            System.setProperty("socksProxyPort", "1080")
+            System.setProperty("java.net.socks.username", "XXX")
+            System.setProperty("java.net.socks.password", "XXX")
+            */
+
+        String socksUsername = System.getProperty("java.net.socks.username");
+        String socksPassword = System.getProperty("java.net.socks.password");
+
+        if (StringUtils.isNotBlank(socksUsername) && StringUtils.isNotBlank(socksPassword)) {
+            log.info("Running matebot through SOCKS-proxy, userName: " + socksUsername);
+            Authenticator.setDefault(new ProxyAuth(socksUsername, socksPassword));
+        }
+
         if (!ProcessUtil.writePID(new File("./logs"))) {
             throw new RuntimeException("Another instance of matebot already started!");
         }
