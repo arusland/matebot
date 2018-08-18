@@ -3,10 +3,7 @@ package io.arusland.bots.commands;
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
 import io.arusland.bots.utils.TimeUtils;
-import io.arusland.storage.AlertItem;
-import io.arusland.storage.Item;
-import io.arusland.storage.NoteItem;
-import io.arusland.storage.UserStorage;
+import io.arusland.storage.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.api.methods.GetFile;
@@ -20,6 +17,8 @@ import org.telegram.telegrambots.bots.commands.BotCommand;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Handle shortcut commands, file operations.
@@ -254,9 +253,48 @@ public class CommonCommand extends BaseBotCommand {
                 handleNewDir(chatId, storage, args);
             } else if ("remind".equals(command)) {
                 handleRemindMe(user, chatId, storage, args);
+            } else if ("deleteAllInactive".equals(command)) {
+                handleRemoveAllInactiveAlerts(user, chatId, update, storage, args);
             } else {
                 log.warn("Unknown command: " + cmd.getCommand() + " by shortcut: " + cmd.getShortcut());
             }
+        }
+    }
+
+    private void handleRemoveAllInactiveAlerts(User user, Long chatId, Update update, UserStorage storage, List<String> args) {
+        if (args.get(0).equals("1")) {
+            getContext().clearShortcutCommands(user);
+
+            List<Item> inactiveAlerts = storage.listItems(ItemType.ALERTS)
+                    .stream()
+                    .map(p -> (AlertItem) p)
+                    .filter(p -> !p.isActive())
+                    .collect(toList());
+
+            if (inactiveAlerts.isEmpty()) {
+                sendMessage(chatId, "⚠ Inactive alerts not found!");
+            } else {
+                log.info("Removing inactive alerts: " + inactiveAlerts.size());
+                inactiveAlerts.forEach(alert -> storage.deleteItem(alert));
+                getContext().listCurrentDir(update);
+
+                sendMessage(chatId, "Inactive alerts were removed: " + inactiveAlerts.size());
+            }
+        } else {
+            String removeAll = "/remove";
+            String cancelOperation = "/cancel";
+
+            getContext().addShortcutCommand(user.getId(), removeAll, "deleteAllInactive", "1");
+            getContext().addShortcutCommand(user.getId(), cancelOperation, "cd", "/alerts");
+
+            StringBuilder sb = new StringBuilder("Are you sure to remove all inactive alerts?");
+            sb.append("\n❌");
+            sb.append(removeAll);
+            sb.append(" ✅");
+            sb.append(cancelOperation);
+            sb.append("\n");
+
+            sendMessage(chatId, sb.toString());
         }
     }
 
@@ -325,7 +363,7 @@ public class CommonCommand extends BaseBotCommand {
                     List<Item> rootItems = storage.listItems(item.getType())
                             .stream()
                             .filter(p -> p.isDirectory())
-                            .collect(Collectors.toList());
+                            .collect(toList());
                     StringBuilder sb = new StringBuilder();
 
                     sb.append("Choose directory move to or /cancel\n");

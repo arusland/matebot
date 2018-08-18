@@ -2,10 +2,7 @@ package io.arusland.bots.commands;
 
 import io.arusland.bots.base.BaseBotCommand;
 import io.arusland.bots.base.BotContext;
-import io.arusland.storage.AlertItem;
-import io.arusland.storage.Item;
-import io.arusland.storage.NoteItem;
-import io.arusland.storage.UserStorage;
+import io.arusland.storage.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.api.objects.Message;
@@ -14,6 +11,8 @@ import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.bots.AbsSender;
 
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * List items of current directory. If current directory not defined,
@@ -49,7 +48,7 @@ public class ListCurrentDirCommand extends BaseBotCommand {
             } else {
                 StringBuilder sb = new StringBuilder();
 
-                sb.append("Current: ");
+                sb.append("Location: ");
                 sb.append(currentItem.getFullPath());
                 sb.append("\n");
 
@@ -62,16 +61,40 @@ public class ListCurrentDirCommand extends BaseBotCommand {
                     }
 
                     List<Item> items = currentItem.listItems();
+                    int allAlerts = 0;
+                    int activeAlerts = 0;
 
                     for (int i = 0; i < items.size(); i++) {
                         Item item = items.get(i);
 
                         if (item instanceof AlertItem) {
-                            renderAlertItem(user, sb, i, (AlertItem) item);
+                            AlertItem alert = (AlertItem) item;
+                            renderAlertItem(user, sb, i, alert);
+
+                            allAlerts++;
+
+                            if (alert.isActive()) {
+                                activeAlerts++;
+                            }
                         } else if (item instanceof NoteItem) {
                             renderNoteItem(user, sb, i, (NoteItem) item);
                         } else {
                             renderCommonItem(user, sb, i, item);
+                        }
+                    }
+
+                    if (currentItem.getType() == ItemType.ALERTS) {
+                        sb.append('\n');
+                        sb.append(EMOJI_BELL);
+                        sb.append(" Alerts: ");
+                        sb.append(allAlerts);
+                        sb.append(", active: ");
+                        sb.append(activeAlerts);
+
+                        if (activeAlerts != allAlerts) {
+                            sb.append("\n/deleteAllInactive");
+
+                            getContext().addShortcutCommand(user.getId(), "/deleteAllInactive", "deleteAllInactive", "0");
                         }
                     }
                 }
