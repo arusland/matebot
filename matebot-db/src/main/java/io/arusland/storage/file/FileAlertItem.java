@@ -259,7 +259,7 @@ public class FileAlertItem extends FileItem<AlertItem> implements AlertItem {
         if (info.period != null) {
             long now = currentDateSupplier.get().getTime();
             boolean isActive = nextDate.getTime() > now;
-            long timeInMs = calcPeriodInMs(info.period, info.periodType, nextDate);
+            long timeInMs = calcPeriodInMs(Math.max(1, info.period), info.periodType, nextDate);
 
             if (isActive) {
                 // when launch first time
