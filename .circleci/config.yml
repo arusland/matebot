@@ -25,4 +25,7 @@ jobs:
           paths:
             - ~/.m2
           key: matebot-{{ checksum "pom.xml" }}
-      
+      # Deploy    
+      - run: |
+          cd deploy
+          sh publish.sh      
