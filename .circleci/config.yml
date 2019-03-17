@@ -19,7 +19,7 @@ jobs:
           keys:
             - matebot-{{ checksum "pom.xml" }}
 
-      - run: mvn package
+      - run: mvn package -DskipTests
 
       - save_cache:
           paths:
