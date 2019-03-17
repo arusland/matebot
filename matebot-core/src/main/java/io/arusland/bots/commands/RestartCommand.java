@@ -23,7 +23,7 @@ public class RestartCommand extends BaseBotCommand {
         sendMessage(update.getMessage().getChatId(), "Restarting...");
 
         try {
-            String output = ExecUtils.runCommand("sh", "restart0.sh");
+            String output = ExecUtils.runCommand("reboot");
             log.info(output);
         } catch (IOException e) {
             log.error(e.toString());
