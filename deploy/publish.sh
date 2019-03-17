@@ -13,4 +13,4 @@ echo "Copying files to remote $MATEBOT_HOST..."
 NOW=$(date +"%Y-%m-%d-%H-%M-%S")
 ssh root@$MATEBOT_HOST 'mkdir /tmp/'$NOW
 scp -r ./* root@$MATEBOT_HOST:/tmp/$NOW
-ssh $MATEBOT_HOST 'sh /tmp/'$NOW/deploy.sh
+ssh root@$MATEBOT_HOST 'sh /tmp/'$NOW/deploy.sh

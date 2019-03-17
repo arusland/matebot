@@ -31,6 +31,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "56:7e:3e:59:6a:f3:ba:cf:8d:1d:08:f6:37:22:5a:35"
+            
       # Deploy    
       - run: |
           cd deploy
