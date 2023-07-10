@@ -20,3 +20,5 @@ lightci.log
 5ce10b8624fa3471cc0f714f2d21ae1a965f0cd8
 /keys
 /backup
+*.jar
+*.log

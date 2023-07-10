@@ -380,13 +380,15 @@ public class MateBot extends BaseCommandBot implements BotContext {
 
     private void sendHelloMessage() {
         String reason = System.getProperty("startReason");
-        configInput.getAllowedUsersIds().forEach(userId -> {
-            if (userId > 0) {
 
-                TimeZoneClient client = getTimeZoneClient(userId);
-                sendMessage((long) userId, "Matebot started at " + client.format(new Date())
-                        + (StringUtils.isNotBlank(reason) ? "\nReason: " + reason : ""));
-            }
-        });
+        // first user it's admin
+        configInput.getAllowedUsersIds().stream()
+                .findFirst()
+                .filter(userId -> userId > 0)
+                .ifPresent(userId -> {
+                    TimeZoneClient client = getTimeZoneClient(userId);
+                    sendMessage((long) userId, "Matebot started at " + client.format(new Date())
+                            + (StringUtils.isNotBlank(reason) ? "\nReason: " + reason : ""));
+                });
     }
 }
